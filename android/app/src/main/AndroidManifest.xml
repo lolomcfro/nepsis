@@ -33,6 +33,8 @@
                 <action android:name="com.sober.SHOW_APP"/>
                 <action android:name="com.sober.LIST_APPS"/>
                 <action android:name="com.sober.APPLY_RESTRICTIONS"/>
+                <action android:name="android.intent.action.PACKAGE_REPLACED"/>
+                <data android:scheme="package"/>
             </intent-filter>
         </receiver>
 
