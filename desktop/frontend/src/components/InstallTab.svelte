@@ -1,7 +1,5 @@
 <script lang="ts">
-  import { installAPK } from '../lib/wails'
-  // @ts-ignore
-  import { OpenFileDialog } from '../../wailsjs/runtime/runtime'
+  import { installAPK, openFileDialog } from '../lib/wails'
 
   export let connected: boolean
 
@@ -11,9 +9,7 @@
 
   async function pickFile() {
     try {
-      const path = await OpenFileDialog({
-        Filters: [{ DisplayName: 'APK Files', Pattern: '*.apk' }]
-      })
+      const path = await openFileDialog()
       if (path) selectedPath = path
     } catch (e) {
       // User cancelled dialog — ignore

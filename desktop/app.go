@@ -107,6 +107,15 @@ func (a *App) ShowApp(pkg string) error {
 	return a.commands.ShowApp(pkg)
 }
 
+// OpenFileDialog opens a native file picker and returns the selected path.
+func (a *App) OpenFileDialog() (string, error) {
+	return wailsruntime.OpenFileDialog(a.ctx, wailsruntime.OpenDialogOptions{
+		Filters: []wailsruntime.FileFilter{
+			{DisplayName: "APK Files", Pattern: "*.apk"},
+		},
+	})
+}
+
 // InstallAPK installs an APK from the given local path.
 func (a *App) InstallAPK(path string) error {
 	if !a.connected {
