@@ -176,3 +176,19 @@ export function Hide() {
 export function Show() {
     window.runtime.Show();
 }
+
+export function OpenFileDialog(options) {
+    return window.runtime.OpenFileDialog(options);
+}
+
+export function SaveFileDialog(options) {
+    return window.runtime.SaveFileDialog(options);
+}
+
+export function OpenDirectoryDialog(options) {
+    return window.runtime.OpenDirectoryDialog(options);
+}
+
+export function OpenMultipleFilesDialog(options) {
+    return window.runtime.OpenMultipleFilesDialog(options);
+}
