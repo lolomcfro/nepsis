@@ -41,9 +41,11 @@ Two components, zero stored state:
 ## Component 1: Sober Desktop App (Wails + Go)
 
 ### Distribution
-- Single downloadable binary for Windows, Mac, Linux
+- Single downloadable binary per platform (Windows, Mac, Linux)
 - Built with [Wails](https://wails.io/) — Go backend, web frontend
 - SoberAdmin APK bundled inside the binary via Go's `embed` package
+- Platform-specific ADB binary bundled via Go's `embed` package — no separate Android Platform Tools install required
+- Expected download size: ~20-25 MB per platform
 - No installer, no dependencies, no runtime required
 
 ### GUI Screens
