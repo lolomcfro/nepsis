@@ -5,11 +5,6 @@ import (
 	"time"
 )
 
-// Executor runs ADB commands. Implemented by *Runner and fake runners in tests.
-type Executor interface {
-	Run(args ...string) (string, error)
-}
-
 // ParseDevices parses the output of `adb devices` and returns authorized device serials.
 func ParseDevices(output string) []string {
 	var devices []string
