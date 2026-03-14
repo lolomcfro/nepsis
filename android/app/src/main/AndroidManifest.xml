@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+
+    <application
+        android:allowBackup="false"
+        android:icon="@null"
+        android:label="@null">
+
+        <receiver
+            android:name=".AdminReceiver"
+            android:exported="true"
+            android:permission="android.permission.BIND_DEVICE_ADMIN">
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/device_admin"/>
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED"/>
+            </intent-filter>
+        </receiver>
+
+        <!--
+            CommandReceiver is NOT exported (exported="false").
+            Security comes entirely from exported="false": only ADB shell (privileged UID)
+            can reach non-exported receivers via `adb shell am broadcast`. Installed apps cannot.
+        -->
+        <receiver
+            android:name=".CommandReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.sober.HIDE_APP"/>
+                <action android:name="com.sober.SHOW_APP"/>
+                <action android:name="com.sober.LIST_APPS"/>
+                <action android:name="com.sober.APPLY_RESTRICTIONS"/>
+            </intent-filter>
+        </receiver>
+
+    </application>
+
+</manifest>
