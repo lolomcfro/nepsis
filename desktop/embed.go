@@ -19,4 +19,4 @@ var soberAdminAPK []byte
 
 // BundledAdminVersion is the versionCode of the embedded sober-admin.apk.
 // Bump this whenever assets/sober-admin.apk is replaced.
-const BundledAdminVersion = 1
+const BundledAdminVersion = 2
