@@ -6,6 +6,8 @@ export function GetApps():Promise<Array<adb.App>>;
 
 export function GetConnectionStatus():Promise<Record<string, any>>;
 
+export function GetKnownStores():Promise<Array<string>>;
+
 export function HideApp(arg1:string):Promise<void>;
 
 export function InstallAPK(arg1:string):Promise<void>;
@@ -17,3 +19,7 @@ export function OpenFileDialog():Promise<string>;
 export function RunSetup():Promise<void>;
 
 export function ShowApp(arg1:string):Promise<void>;
+
+export function UninstallApp(arg1:string):Promise<void>;
+
+export function UpdateAdmin():Promise<void>;

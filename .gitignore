@@ -1,0 +1,36 @@
+# ─── OS ────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── IDE ───────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.iml
+
+# ─── Go / Wails (desktop/) ─────────────────────────────────────────
+desktop/build/bin/
+desktop/frontend/node_modules/
+desktop/frontend/dist/
+desktop/frontend/package.json.md5
+
+# Wails dev tooling
+desktop/wailsjsdev/
+
+# Superpowers brainstorm sessions
+desktop/.superpowers/
+
+# ─── Android ───────────────────────────────────────────────────────
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+android/captures/
+android/*.keystore
+android/*.jks
+
+# ─── Logs & temp ───────────────────────────────────────────────────
+*.log
+*.tmp
+*.swp

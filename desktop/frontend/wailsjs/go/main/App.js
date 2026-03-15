@@ -10,6 +10,10 @@ export function GetConnectionStatus() {
   return window['go']['main']['App']['GetConnectionStatus']();
 }
 
+export function GetKnownStores() {
+  return window['go']['main']['App']['GetKnownStores']();
+}
+
 export function HideApp(arg1) {
   return window['go']['main']['App']['HideApp'](arg1);
 }
@@ -32,4 +36,12 @@ export function RunSetup() {
 
 export function ShowApp(arg1) {
   return window['go']['main']['App']['ShowApp'](arg1);
+}
+
+export function UninstallApp(arg1) {
+  return window['go']['main']['App']['UninstallApp'](arg1);
+}
+
+export function UpdateAdmin() {
+  return window['go']['main']['App']['UpdateAdmin']();
 }

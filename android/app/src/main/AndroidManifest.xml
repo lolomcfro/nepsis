@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
 
     <application
         android:allowBackup="false"
@@ -21,13 +22,11 @@
         </receiver>
 
         <!--
-            CommandReceiver is NOT exported (exported="false").
-            Security comes entirely from exported="false": only ADB shell (privileged UID)
-            can reach non-exported receivers via `adb shell am broadcast`. Installed apps cannot.
+            Security is enforced by DevicePolicyManager (requires device owner), not by export status.
         -->
         <receiver
             android:name=".CommandReceiver"
-            android:exported="false">
+            android:exported="true">
             <intent-filter>
                 <action android:name="com.sober.HIDE_APP"/>
                 <action android:name="com.sober.SHOW_APP"/>

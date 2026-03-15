@@ -2,10 +2,9 @@ package com.sober.admin
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.drawable.Drawable
-import android.content.pm.PackageManager
 import android.util.Base64
 import java.io.ByteArrayOutputStream
 
@@ -13,9 +12,25 @@ class AppLister(private val context: Context) {
 
     private val pm: PackageManager = context.packageManager
 
+    private fun encodeIcon(pkg: String): String {
+        return try {
+            val drawable = pm.getApplicationIcon(pkg)
+            val bitmap = Bitmap.createBitmap(48, 48, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
+            drawable.setBounds(0, 0, 48, 48)
+            drawable.draw(canvas)
+            val out = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+            Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP)
+        } catch (e: Exception) {
+            ""
+        }
+    }
+
     /**
      * Returns JSON for all apps that have a launcher intent (user-facing apps).
-     * Icons are scaled to 48dp and base64-encoded.
+     * Icons are encoded as 48×48 PNG base64 strings. Call this from a background
+     * thread (e.g. via goAsync) to avoid ANR on the main broadcast receiver thread.
      */
     fun listAppsAsJson(hiddenChecker: (String) -> Boolean): String {
         val launcherIntent = Intent(Intent.ACTION_MAIN).apply {
@@ -32,13 +47,8 @@ class AppLister(private val context: Context) {
             } catch (e: PackageManager.NameNotFoundException) {
                 pkg
             }
-            val icon = try {
-                encodeIcon(pm.getApplicationIcon(pkg))
-            } catch (e: Exception) {
-                ""
-            }
             val hidden = hiddenChecker(pkg)
-            buildAppEntry(pkg, label, hidden, icon)
+            buildAppEntry(pkg, label, hidden, encodeIcon(pkg))
         }
 
         return buildJsonArray(entries)
@@ -51,15 +61,4 @@ class AppLister(private val context: Context) {
 
     fun buildJsonArray(entries: List<String>): String = "[${entries.joinToString(",")}]"
 
-    private fun encodeIcon(drawable: Drawable): String {
-        val sizePx = (48 * context.resources.displayMetrics.density).toInt()
-        val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        drawable.setBounds(0, 0, sizePx, sizePx)
-        drawable.draw(canvas)
-
-        val bos = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.PNG, 80, bos)
-        return Base64.encodeToString(bos.toByteArray(), Base64.NO_WRAP)
-    }
 }

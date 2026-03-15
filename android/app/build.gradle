@@ -15,10 +15,21 @@ android {
         versionName "1.0"
     }
 
+    signingConfigs {
+        debug {
+            storeFile file("${System.getProperty('user.home')}/.android/debug.keystore")
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+    }
+
     buildTypes {
         release {
+            debuggable true
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
+            signingConfig signingConfigs.debug
         }
     }
 
@@ -29,6 +40,29 @@ android {
 
     kotlinOptions {
         jvmTarget = '11'
+    }
+}
+
+def getAdbEnv() {
+    def env = [:]
+    def procVersion = new File('/proc/version')
+    if (procVersion.exists() && procVersion.text.toLowerCase().contains('microsoft')) {
+        def result = ['sh', '-c', "ip route show default | awk '{print \$3}'"].execute().text.trim()
+        if (result) {
+            env['ADB_SERVER_SOCKET'] = "tcp:${result}:5037"
+        }
+    }
+    return env
+}
+
+tasks.register('deploy') {
+    dependsOn tasks.named('assembleRelease')
+    doLast {
+        def apk = file("build/outputs/apk/release/app-release.apk")
+        exec {
+            environment getAdbEnv()
+            commandLine 'adb', 'install', '-r', apk.absolutePath
+        }
     }
 }
 

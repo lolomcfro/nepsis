@@ -9,6 +9,9 @@ import java.io.File
 
 class CommandReceiver : BroadcastReceiver() {
 
+    private fun escapeJson(s: String): String =
+        "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+
     override fun onReceive(context: Context, intent: Intent) {
         val dpm = context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
         val admin = ComponentName(context, AdminReceiver::class.java)
@@ -27,9 +30,19 @@ class CommandReceiver : BroadcastReceiver() {
                 policyManager.applyRestrictions()
             }
             "com.sober.LIST_APPS" -> {
-                val lister = AppLister(context)
-                val json = lister.listAppsAsJson { pkg -> policyManager.isHidden(pkg) }
-                File("/data/local/tmp/sober_apps.json").writeText(json)
+                val result = goAsync()
+                Thread {
+                    val outFile = File(context.cacheDir, "sober_apps.json")
+                    try {
+                        val lister = AppLister(context)
+                        val json = lister.listAppsAsJson { pkg -> policyManager.isHidden(pkg) }
+                        outFile.writeText(json)
+                    } catch (e: Exception) {
+                        outFile.writeText("""{"error":${escapeJson(e.toString())}}""")
+                    } finally {
+                        result.finish()
+                    }
+                }.start()
             }
             "android.intent.action.PACKAGE_REPLACED" -> {
                 // No-op: stateless design means we cannot know which apps should be hidden.

@@ -23,6 +23,26 @@ func SetBinary(b []byte) {
 	adbBinary = b
 }
 
+// NewSystemRunner returns a Runner using the system `adb` binary from PATH.
+// Returns an error if `adb` is not found in PATH.
+func NewSystemRunner() (*Runner, error) {
+	for _, name := range []string{"adb", "adb.exe"} {
+		if path, err := exec.LookPath(name); err == nil {
+			return &Runner{path: path}, nil
+		}
+	}
+	return nil, fmt.Errorf("adb not found in PATH: adb or adb.exe")
+}
+
+// NewAutoRunner returns a Runner using the system `adb` if available,
+// otherwise extracts and uses the bundled binary.
+func NewAutoRunner() (*Runner, error) {
+	if r, err := NewSystemRunner(); err == nil {
+		return r, nil
+	}
+	return NewRunner()
+}
+
 // NewRunner extracts the bundled ADB binary to a temp file and returns a Runner.
 func NewRunner() (*Runner, error) {
 	if len(adbBinary) == 0 {
