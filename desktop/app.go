@@ -44,7 +44,7 @@ func (a *App) startup(ctx context.Context) {
 		return
 	}
 
-	runner, err := adb.NewRunner()
+	runner, err := adb.NewAutoRunner()
 	if err != nil {
 		// Surface error to frontend via connection status
 		return
@@ -63,6 +63,38 @@ func (a *App) onConnectionChange(connected bool, serial string) {
 		"connected": connected,
 		"serial":    serial,
 	})
+	if connected {
+		go a.maybeUpdateAdmin()
+	}
+}
+
+func (a *App) maybeUpdateAdmin() {
+	installed, err := a.commands.GetInstalledAdminVersionCode()
+	if err != nil || installed == 0 || installed >= BundledAdminVersion {
+		return // error, not installed, or up to date
+	}
+	wailsruntime.EventsEmit(a.ctx, "admin:version-mismatch", map[string]interface{}{
+		"installedVersion": installed,
+		"bundledVersion":   BundledAdminVersion,
+	})
+}
+
+// UpdateAdmin installs the bundled SoberAdmin APK onto the connected phone.
+func (a *App) UpdateAdmin() error {
+	if !a.connected {
+		return fmt.Errorf("no phone connected")
+	}
+	tmp, err := os.CreateTemp("", "sober-admin-*.apk")
+	if err != nil {
+		return err
+	}
+	defer os.Remove(tmp.Name())
+	if _, err := tmp.Write(soberAdminAPK); err != nil {
+		tmp.Close()
+		return err
+	}
+	tmp.Close()
+	return a.commands.InstallAPK(tmp.Name())
 }
 
 // --- Wails-bound methods (called from frontend) ---
@@ -107,6 +139,19 @@ func (a *App) ShowApp(pkg string) error {
 	return a.commands.ShowApp(pkg)
 }
 
+// UninstallApp uninstalls the given package.
+func (a *App) UninstallApp(pkg string) error {
+	if !a.connected {
+		return fmt.Errorf("no phone connected")
+	}
+	return a.commands.UninstallApp(pkg)
+}
+
+// GetKnownStores returns the list of known app store package names.
+func (a *App) GetKnownStores() []string {
+	return adb.KnownStores
+}
+
 // OpenFileDialog opens a native file picker and returns the selected path.
 func (a *App) OpenFileDialog() (string, error) {
 	return wailsruntime.OpenFileDialog(a.ctx, wailsruntime.OpenDialogOptions{
@@ -146,12 +191,17 @@ func (a *App) RunSetup() error {
 		return fmt.Errorf("install SoberAdmin: %w", err)
 	}
 
-	// Step 2: Grant Device Owner
+	// Step 2: Pre-flight — ensure no accounts are present
+	if err := a.commands.CheckAccounts(); err != nil {
+		return err
+	}
+
+	// Step 3: Grant Device Owner
 	if err := a.commands.SetDeviceOwner(); err != nil {
 		return fmt.Errorf("set device owner: %w", err)
 	}
 
-	// Step 3: Apply baseline restrictions
+	// Step 4: Apply baseline restrictions
 	if err := a.commands.ApplyRestrictions(); err != nil {
 		return fmt.Errorf("apply restrictions: %w", err)
 	}

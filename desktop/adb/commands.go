@@ -3,9 +3,20 @@ package adb
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 )
+
+// KnownStores lists package names of known app stores.
+var KnownStores = []string{
+	"com.android.vending",             // Google Play Store
+	"com.sec.android.app.samsungapps", // Galaxy Store
+	"com.amazon.venezia",              // Amazon Appstore
+	"com.huawei.appmarket",            // Huawei AppGallery
+	"com.xiaomi.market",               // Mi GetApps
+	"com.oppo.market",                 // OPPO App Market
+}
 
 // Executor runs ADB commands. Implemented by *Runner and fake runners in tests.
 type Executor interface {
@@ -52,6 +63,16 @@ func (c *Commands) ShowApp(pkg string) error {
 	return err
 }
 
+// UninstallApp uninstalls the given package.
+func (c *Commands) UninstallApp(pkg string) error {
+	_, err := c.runner.Run(
+		"shell", "pm", "uninstall",
+		"--user", "0",
+		pkg,
+	)
+	return err
+}
+
 // ApplyRestrictions broadcasts APPLY_RESTRICTIONS to enforce DISALLOW_INSTALL_UNKNOWN_SOURCES.
 func (c *Commands) ApplyRestrictions() error {
 	_, err := c.runner.Run(
@@ -63,8 +84,16 @@ func (c *Commands) ApplyRestrictions() error {
 }
 
 // ListApps fetches the current app list from the phone via LIST_APPS.
-// Polls for the output file with a 10-second timeout.
+// Polls for the output file with a 5-second timeout.
 func (c *Commands) ListApps() ([]App, error) {
+	// Pre-check: give a clear error immediately if Device Owner is not set.
+	if !c.IsDeviceOwnerInstalled() {
+		return nil, fmt.Errorf("SoberAdmin is not the Device Owner — run Setup first")
+	}
+
+	// Delete any stale output file before broadcasting.
+	_, _ = c.runner.Run("shell", "run-as", "com.sober.admin", "rm", "-f", "cache/sober_apps.json")
+
 	_, err := c.runner.Run(
 		"shell", "am", "broadcast",
 		"-a", "com.sober.LIST_APPS",
@@ -73,17 +102,28 @@ func (c *Commands) ListApps() ([]App, error) {
 	if err != nil {
 		return nil, fmt.Errorf("LIST_APPS broadcast: %w", err)
 	}
+	// Note: am broadcast always outputs "result=0" regardless of whether the
+	// receiver ran. We detect success/failure by polling for the output file.
 
-	deadline := time.Now().Add(10 * time.Second)
+	deadline := time.Now().Add(15 * time.Second)
 	for time.Now().Before(deadline) {
-		out, err := c.runner.Run("shell", "cat", "/data/local/tmp/sober_apps.json")
-		if err == nil && strings.HasPrefix(strings.TrimSpace(out), "[") {
-			_, _ = c.runner.Run("shell", "rm", "/data/local/tmp/sober_apps.json")
+		out, err := c.runner.Run("shell", "run-as", "com.sober.admin", "cat", "cache/sober_apps.json")
+		if err != nil {
+			time.Sleep(250 * time.Millisecond)
+			continue
+		}
+		out = strings.TrimSpace(out)
+		// Receiver wrote an error JSON: {"error":"..."}
+		if strings.HasPrefix(out, `{"error"`) {
+			return nil, fmt.Errorf("LIST_APPS failed on device: %s", out)
+		}
+		if strings.HasPrefix(out, "[") {
+			_, _ = c.runner.Run("shell", "run-as", "com.sober.admin", "rm", "-f", "cache/sober_apps.json")
 			return ParseAppList(out)
 		}
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(250 * time.Millisecond)
 	}
-	return nil, fmt.Errorf("LIST_APPS timed out after 10 seconds — check SoberAdmin is installed as Device Owner")
+	return nil, fmt.Errorf("LIST_APPS timed out — receiver did not write output within 15 seconds")
 }
 
 // InstallAPK installs an APK file onto the connected phone.
@@ -98,6 +138,23 @@ func (c *Commands) InstallAPK(path string) error {
 	return nil
 }
 
+// CheckAccounts returns an error if user accounts are present on the device,
+// which would prevent set-device-owner from succeeding.
+// Fails open (returns nil) if the check itself cannot run.
+func (c *Commands) CheckAccounts() error {
+	out, err := c.runner.Run("shell", "dumpsys", "account")
+	if err != nil {
+		return nil // can't check, proceed; SetDeviceOwner will catch it
+	}
+	for _, line := range strings.Split(out, "\n") {
+		if strings.Contains(line, "Account {") && strings.Contains(line, "type=com.google") {
+			return fmt.Errorf("Google accounts are still on this device — " +
+				"go to Settings › Accounts and remove them all, then try again")
+		}
+	}
+	return nil
+}
+
 // SetDeviceOwner grants Device Owner to SoberAdmin.
 func (c *Commands) SetDeviceOwner() error {
 	out, err := c.runner.Run(
@@ -105,6 +162,10 @@ func (c *Commands) SetDeviceOwner() error {
 		"com.sober.admin/.AdminReceiver",
 	)
 	if err != nil {
+		if strings.Contains(err.Error(), "there are already some accounts on the device") {
+			return fmt.Errorf("Google accounts are still on this device — " +
+				"go to Settings › Accounts and remove them all, then try again")
+		}
 		return err
 	}
 	if strings.Contains(strings.ToLower(out), "error") {
@@ -120,6 +181,29 @@ func (c *Commands) IsDeviceOwnerInstalled() bool {
 		return false
 	}
 	return strings.Contains(out, "com.sober.admin")
+}
+
+// GetInstalledAdminVersionCode returns the versionCode of the installed
+// com.sober.admin package, or 0 if it is not installed.
+func (c *Commands) GetInstalledAdminVersionCode() (int, error) {
+	out, err := c.runner.Run("shell", "dumpsys", "package", "com.sober.admin")
+	if err != nil {
+		return 0, fmt.Errorf("dumpsys package: %w", err)
+	}
+	for _, line := range strings.Split(out, "\n") {
+		line = strings.TrimSpace(line)
+		if !strings.HasPrefix(line, "versionCode=") {
+			continue
+		}
+		// format: "versionCode=7 targetSdk=33"
+		parts := strings.SplitN(strings.Fields(line)[0], "=", 2)
+		v, err := strconv.Atoi(parts[1])
+		if err != nil {
+			return 0, fmt.Errorf("parse versionCode: %w", err)
+		}
+		return v, nil
+	}
+	return 0, nil // not installed
 }
 
 // ParseAppList parses the JSON app list written by LIST_APPS.
