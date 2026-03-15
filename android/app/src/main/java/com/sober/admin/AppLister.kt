@@ -36,20 +36,31 @@ class AppLister(private val context: Context) {
         val launcherIntent = Intent(Intent.ACTION_MAIN).apply {
             addCategory(Intent.CATEGORY_LAUNCHER)
         }
-        val resolvedApps = pm.queryIntentActivities(launcherIntent, 0)
-            .map { it.activityInfo.packageName }
-            .distinct()
-            .sorted()
 
-        val entries = resolvedApps.map { pkg ->
-            val label = try {
-                pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString()
-            } catch (e: PackageManager.NameNotFoundException) {
-                pkg
+        // Visible apps (standard launcher query)
+        val visiblePackages = pm.queryIntentActivities(launcherIntent, 0)
+            .map { it.activityInfo.packageName }
+            .toSet()
+
+        // Hidden apps: Device Owner can enumerate all installed packages.
+        // MATCH_UNINSTALLED_PACKAGES is required to see apps hidden via setApplicationHidden()
+        // on Android 9+, as those apps are invisible to PackageManager with flag 0.
+        val hiddenPackages = pm.getInstalledApplications(PackageManager.MATCH_UNINSTALLED_PACKAGES)
+            .map { it.packageName }
+            .filter { pkg -> !visiblePackages.contains(pkg) && hiddenChecker(pkg) }
+            .toSet()
+
+        val entries = (visiblePackages + hiddenPackages)
+            .map { pkg ->
+                val label = try {
+                    pm.getApplicationLabel(pm.getApplicationInfo(pkg, PackageManager.MATCH_UNINSTALLED_PACKAGES)).toString()
+                } catch (e: PackageManager.NameNotFoundException) {
+                    pkg
+                }
+                Triple(label, pkg, hiddenChecker(pkg))
             }
-            val hidden = hiddenChecker(pkg)
-            buildAppEntry(pkg, label, hidden, encodeIcon(pkg))
-        }
+            .sortedBy { (label, _, _) -> label.lowercase() }
+            .map { (label, pkg, hidden) -> buildAppEntry(pkg, label, hidden, encodeIcon(pkg)) }
 
         return buildJsonArray(entries)
     }
