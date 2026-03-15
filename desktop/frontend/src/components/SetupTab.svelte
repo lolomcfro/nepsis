@@ -43,7 +43,7 @@
   }
 
   // Only track disconnect when it can meaningfully pause the wizard.
-  $: if (!connected && (wizardStep === 'guide-removal' || wizardStep === 'detect')) {
+  $: if (!connected && (wizardStep === 'guide-removal' || wizardStep === 'detect' || wizardStep === 'installing')) {
     disconnectedDuringPoll = true
     stopPoll()
   }
@@ -288,10 +288,17 @@
       </div>
 
     {:else if wizardStep === 'installing'}
-      <div class="progress">
-        <div class="spinner"></div>
-        <p>Setting up SoberAdmin — do not unplug your phone…</p>
-      </div>
+      {#if disconnectedDuringPoll}
+        <div class="banner error">
+          Phone disconnected during setup. Please retry.
+          <button on:click={retryFromStart}>Try Again</button>
+        </div>
+      {:else}
+        <div class="progress">
+          <div class="spinner"></div>
+          <p>Setting up SoberAdmin — do not unplug your phone…</p>
+        </div>
+      {/if}
 
     {:else if wizardStep === 'success'}
       <div class="banner success">

@@ -297,6 +297,7 @@ func (c *Commands) ImportContacts(vcfPath string) error {
 		}
 		out = strings.TrimSpace(out)
 		if strings.HasPrefix(out, `{"success"`) {
+			_, _ = c.runner.Run("shell", "run-as", "com.sober.admin", "rm", "-f", "cache/sober_import_result.json")
 			return nil
 		}
 		if strings.HasPrefix(out, `{"error"`) {
