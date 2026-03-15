@@ -1,8 +1,11 @@
 <script lang="ts">
+  import { createEventDispatcher } from 'svelte'
   import { runSetup } from '../lib/wails'
 
   export let connected: boolean
   export let deviceOwnerInstalled: boolean
+
+  const dispatch = createEventDispatcher()
 
   let step: 'instructions' | 'running' | 'done' | 'error' = 'instructions'
   let errorMessage = ''
@@ -13,6 +16,7 @@
       await runSetup()
       step = 'done'
       deviceOwnerInstalled = true
+      dispatch('setupcomplete')
     } catch (e: any) {
       errorMessage = e?.message ?? String(e)
       step = 'error'
