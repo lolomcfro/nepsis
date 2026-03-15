@@ -8,14 +8,19 @@ import (
 	"time"
 )
 
-// KnownStores lists package names of known app stores.
-var KnownStores = []string{
+// knownStores lists package names of known app stores.
+var knownStores = []string{
 	"com.android.vending",             // Google Play Store
 	"com.sec.android.app.samsungapps", // Galaxy Store
 	"com.amazon.venezia",              // Amazon Appstore
 	"com.huawei.appmarket",            // Huawei AppGallery
 	"com.xiaomi.market",               // Mi GetApps
 	"com.oppo.market",                 // OPPO App Market
+}
+
+// GetKnownStoreList returns the list of known app store package names.
+func GetKnownStoreList() []string {
+	return knownStores
 }
 
 // Executor runs ADB commands. Implemented by *Runner and fake runners in tests.
@@ -70,7 +75,10 @@ func (c *Commands) UninstallApp(pkg string) error {
 		"--user", "0",
 		pkg,
 	)
-	return err
+	if err != nil {
+		return fmt.Errorf("uninstall %s: %w", pkg, err)
+	}
+	return nil
 }
 
 // ApplyRestrictions broadcasts APPLY_RESTRICTIONS to enforce DISALLOW_INSTALL_UNKNOWN_SOURCES.

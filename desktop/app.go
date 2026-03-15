@@ -149,7 +149,7 @@ func (a *App) UninstallApp(pkg string) error {
 
 // GetKnownStores returns the list of known app store package names.
 func (a *App) GetKnownStores() []string {
-	return adb.KnownStores
+	return adb.GetKnownStoreList()
 }
 
 // OpenFileDialog opens a native file picker and returns the selected path.
