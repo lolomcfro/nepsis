@@ -13,10 +13,11 @@ import (
 
 // App holds all Wails-bound methods. One instance per application lifetime.
 type App struct {
-	ctx      context.Context
-	runner   *adb.Runner
-	commands *adb.Commands
-	poller   *adb.Poller
+	ctx        context.Context
+	runner     *adb.Runner
+	commands   *adb.Commands  // setup/teardown operations only
+	appManager adb.AppManager // hide/show/list/uninstall (mode-agnostic)
+	poller     *adb.Poller
 
 	connected bool
 	serial    string
@@ -51,6 +52,7 @@ func (a *App) startup(ctx context.Context) {
 	}
 	a.runner = runner
 	a.commands = adb.NewCommands(runner)
+	a.appManager = a.commands
 
 	a.poller = adb.NewPoller(runner, 2*time.Second, a.onConnectionChange)
 	a.poller.Start()
@@ -120,7 +122,7 @@ func (a *App) GetApps() ([]adb.App, error) {
 	if !a.connected {
 		return nil, fmt.Errorf("no phone connected")
 	}
-	return a.commands.ListApps()
+	return a.appManager.ListApps()
 }
 
 // HideApp hides the given package.
@@ -128,7 +130,7 @@ func (a *App) HideApp(pkg string) error {
 	if !a.connected {
 		return fmt.Errorf("no phone connected")
 	}
-	return a.commands.HideApp(pkg)
+	return a.appManager.HideApp(pkg)
 }
 
 // ShowApp makes the given package visible.
@@ -136,7 +138,7 @@ func (a *App) ShowApp(pkg string) error {
 	if !a.connected {
 		return fmt.Errorf("no phone connected")
 	}
-	return a.commands.ShowApp(pkg)
+	return a.appManager.ShowApp(pkg)
 }
 
 // UninstallApp uninstalls the given package.
@@ -144,7 +146,7 @@ func (a *App) UninstallApp(pkg string) error {
 	if !a.connected {
 		return fmt.Errorf("no phone connected")
 	}
-	return a.commands.UninstallApp(pkg)
+	return a.appManager.UninstallApp(pkg)
 }
 
 // GetKnownStores returns the list of known app store package names.
