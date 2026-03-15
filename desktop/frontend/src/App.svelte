@@ -2,7 +2,6 @@
   import { onMount } from 'svelte'
   import { getConnectionStatus, isDeviceOwnerInstalled, onConnectionChange, onAdminVersionMismatch, updateAdmin, getKnownStores, hideApp } from './lib/wails'
   import type { ConnectionStatus } from './lib/wails'
-  import StatusBar from './components/StatusBar.svelte'
   import SetupTab from './components/SetupTab.svelte'
   import AppsTab from './components/AppsTab.svelte'
   import InstallTab from './components/InstallTab.svelte'
@@ -23,7 +22,7 @@
       updateState = 'success'
       setTimeout(() => { versionMismatch = null; updateState = 'idle' }, 2000)
     } catch (e: any) {
-      updateError = e
+      updateError = e?.message ?? String(e)
       updateState = 'error'
     }
   }
@@ -126,7 +125,7 @@
     {/if}
   </main>
 
-  <StatusBar {connected} {serial} />
+
 </div>
 
 <style>

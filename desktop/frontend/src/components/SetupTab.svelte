@@ -79,38 +79,49 @@
 </div>
 
 <style>
-  .setup { max-width: 600px; }
-  h2 { margin-bottom: 16px; font-size: 20px; }
-  ol { margin: 16px 0 24px 20px; line-height: 1.8; }
+  .setup { max-width: 600px; color: #e2e2e8; }
+  h2 { margin-bottom: 16px; font-size: 20px; color: #e2e2e8; }
+  ol { margin: 16px 0 24px 20px; line-height: 1.8; color: #e2e2e8; }
   ol li { margin-bottom: 12px; }
-  em { color: #888; font-size: 13px; }
+  ol li::marker { color: #a78bfa; font-weight: 600; }
+  em { color: #9ca3af; font-size: 13px; }
+  p { color: #9ca3af; }
   .primary {
     padding: 12px 32px;
-    background: #1976d2;
+    background: linear-gradient(135deg, #7c6af7, #a78bfa);
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     font-size: 15px;
     cursor: pointer;
-    transition: background 0.15s;
+    transition: opacity 0.15s;
   }
-  .primary:hover:not(:disabled) { background: #1565c0; }
-  .primary:disabled { background: #bdbdbd; cursor: default; }
-  .progress { display: flex; align-items: center; gap: 16px; margin-top: 24px; }
+  .primary:hover:not(:disabled) { opacity: 0.88; }
+  .primary:disabled {
+    background: #1f1f2e;
+    color: #4b5563;
+    border: 1px solid #2a2a38;
+    cursor: default;
+  }
+  .progress { display: flex; align-items: center; gap: 16px; margin-top: 24px; color: #9ca3af; }
   .spinner {
     width: 24px; height: 24px; flex-shrink: 0;
-    border: 3px solid #e0e0e0; border-top-color: #1976d2;
+    border: 3px solid #2a2a38; border-top-color: #a78bfa;
     border-radius: 50%; animation: spin 0.8s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
   .banner {
-    padding: 16px; border-radius: 4px; margin-top: 16px;
+    padding: 16px; border-radius: 6px; margin-top: 16px;
     line-height: 1.6;
   }
-  .banner.success { background: #e8f5e9; border-left: 4px solid #4caf50; color: #2e7d32; }
+  .banner.success { background: #1a2a1f; border: 1px solid #166534; border-left: 4px solid #166534; color: #4ade80; }
   .banner.error {
-    background: #ffebee; border-left: 4px solid #f44336; color: #c62828;
+    background: #1f1515; border: 1px solid #7f1d1d; border-left: 4px solid #7f1d1d; color: #f87171;
     display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
   }
-  .banner.error button { padding: 4px 12px; cursor: pointer; white-space: nowrap; }
+  .banner.error button {
+    padding: 4px 12px; cursor: pointer; white-space: nowrap;
+    background: #1f1f2e; color: #f87171; border: 1px solid #7f1d1d; border-radius: 4px;
+  }
+  .banner.error button:hover { background: #2a2020; }
 </style>
