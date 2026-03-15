@@ -18,6 +18,7 @@ class ContactsManager(private val context: Context) {
             while (c.moveToNext()) {
                 val id = c.getString(c.getColumnIndexOrThrow(ContactsContract.Contacts._ID))
                 val name = c.getString(c.getColumnIndexOrThrow(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY)) ?: ""
+                if (name.isBlank()) continue  // skip contacts with no display name
                 sb.append("BEGIN:VCARD\r\nVERSION:3.0\r\n")
                 sb.append("FN:${escapeVcf(name)}\r\n")
 
@@ -63,9 +64,13 @@ class ContactsManager(private val context: Context) {
                 .firstOrNull { it.startsWith("FN:") }
                 ?.removePrefix("FN:")?.trim()
                 ?.let { unescapeVcf(it) }
+                ?.takeIf { it.isNotBlank() }
                 ?: continue
 
             val phones = card.lines()
+                // Match bare TEL: and typed TEL;TYPE=...: lines. The contains(":") guard prevents
+                // matching TEL; lines that have no value portion. Parentheses are mandatory here —
+                // && binds tighter than || without them.
                 .filter { line -> line.startsWith("TEL:") || (line.startsWith("TEL;") && line.contains(":")) }
                 .mapNotNull { line ->
                     val colon = line.lastIndexOf(':')
@@ -114,12 +119,12 @@ class ContactsManager(private val context: Context) {
                 context.contentResolver.applyBatch(ContactsContract.AUTHORITY, ops)
                 count++
             } catch (e: Exception) {
-                // Skip this contact and continue
+                android.util.Log.w("ContactsManager", "Failed to import contact '$name': ${e.message}")
             }
         }
         return count
     }
 
     private fun escapeVcf(s: String): String = s.replace("\\", "\\\\").replace(",", "\\,").replace("\n", "\\n")
-    private fun unescapeVcf(s: String): String = s.replace("\\n", "\n").replace("\\,", ",").replace("\\\\", "\\")
+    private fun unescapeVcf(s: String): String = s.replace("\\\\", "\\").replace("\\,", ",").replace("\\n", "\n")
 }
