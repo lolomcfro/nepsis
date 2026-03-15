@@ -76,10 +76,10 @@ Then proceed regardless.
 2. SoberAdmin receives an `EXPORT_CONTACTS` broadcast (`com.sober.EXPORT_CONTACTS`), writes a VCF to its private cache via `getCacheDir()` (not `getExternalCacheDir()`) — this is required for `run-as` access. Output path: `cache/sober_contacts.vcf` relative to the app's data root.
 3. Desktop app polls via `adb shell run-as com.sober.admin cat cache/sober_contacts.vcf` with a 15-second deadline at 250ms intervals (same as `ListApps`).
 4. On success, the VCF content is written to `<os.UserConfigDir()>/sober/contacts-backup-<timestamp>.vcf` on the desktop.
-5. The full path is shown to the user. The path is also saved to `config.json` as `contacts_backup_path`.
+5. The full path is shown to the user. The path is also saved to `config.json` as `contacts_backup_path`. Timestamp format in the filename: `20060102-150405` (Go reference time, filename-safe — e.g. `contacts-backup-20260315-143022.vcf`). This same format is used to display the backup date in the reset flow's restore prompt.
 6. Desktop app deletes the cache file: `adb shell run-as com.sober.admin rm -f cache/sober_contacts.vcf`
 
-This requires a new broadcast action and handler in the SoberAdmin APK.
+This requires a new broadcast action and handler in the SoberAdmin APK. The `run-as` pull mechanism requires that SoberAdmin is built with `android:debuggable="true"` in its manifest — this must be maintained in all distributed builds, as it is load-bearing for the backup flow.
 
 ### Step 3 — Guided Account Removal
 
@@ -98,16 +98,16 @@ When the count reaches zero, the wizard auto-proceeds to the install phase with 
 
 If the phone disconnects during the install phase (Steps 4–6), the wizard cannot safely resume mid-install. It shows an error: *"Phone disconnected during setup."* The "Try Again" path restarts from Step 1. This is safe because `InstallAPK` uses the `-r` (reinstall) flag, so re-running it on an already-partially-installed APK will not fail.
 
-### Install Phase (Steps 4–6) — Single Spinner, No User Action
+### Install Phase — Single Spinner, No User Action
 
 The UI shows a single spinner: *"Setting up SoberAdmin — do not unplug your phone…"*
 
-Internally three operations run in sequence:
+Internally three code-level operations run in sequence (not separate wizard screens — the user sees only the spinner):
 1. Install SoberAdmin APK
 2. Set Device Owner (`dpm set-device-owner`)
 3. Apply baseline restrictions (`com.sober.APPLY_RESTRICTIONS` broadcast)
 
-These are not shown as separate UI steps — they are an atomic phase from the user's perspective. Any failure surfaces a clear error with a "Try Again" option that restarts from Step 1.
+Any failure surfaces a clear error with a "Try Again" option that restarts the wizard from Step 1.
 
 ### Step 7 — Re-add Google Account
 
@@ -134,12 +134,12 @@ Once setup is complete (Device Owner active), the Setup tab shows a persistent s
 Steps must execute in this order — Step 2 depends on Device Owner still being active:
 
 1. **Show all hidden apps** — call `ListApps()`, filter by `Hidden: true`, call `ShowApp` on each. Must happen before Step 2 because `ListApps` requires Device Owner.
-2. **Remove Device Owner** — send `com.sober.CLEAR_DEVICE_OWNER` broadcast to SoberAdmin, which calls `clearDeviceOwnerApp()` on itself and unregisters the admin receiver. This requires a new broadcast action and handler in the SoberAdmin APK.
+2. **Remove Device Owner** — send `com.sober.CLEAR_DEVICE_OWNER` broadcast to SoberAdmin, which calls `clearDeviceOwnerApp()` on itself and unregisters the admin receiver. After sending the broadcast, the desktop polls `IsDeviceOwnerInstalled()` (via `dpm list-owners`) at 250ms intervals with a 10-second deadline until it returns false — this confirms removal before proceeding. This requires a new broadcast action and handler in the SoberAdmin APK.
 3. **Restore contacts (optional)** — shown only if `config.json` has a non-empty `contacts_backup_path` pointing to an existing file:
    > "We have a contacts backup from [date]. Restore it to your phone?"
    > **[Restore]** &nbsp;&nbsp; **[Skip]**
 
-   **Restore implementation:** Push the VCF to the phone (`adb push <path> /sdcard/sober_contacts_restore.vcf`), then broadcast `com.sober.IMPORT_CONTACTS` to SoberAdmin, which reads the file and inserts contacts via `ContactsContract`. This avoids the `file://` URI restriction (Android 7+ blocks `file://` URIs across process boundaries via Intent). SoberAdmin deletes `/sdcard/sober_contacts_restore.vcf` after import. This requires a third new broadcast action in the SoberAdmin APK (see table below). If the backup file is missing, this step is silently skipped.
+   **Restore implementation:** Push the VCF to the phone (`adb push <path> /sdcard/sober_contacts_restore.vcf`), then broadcast `com.sober.IMPORT_CONTACTS` to SoberAdmin. SoberAdmin reads the file, inserts contacts via `ContactsContract`, then writes `getCacheDir()/sober_import_result.json` containing `{"success":true}` or `{"error":"..."}`, then deletes `/sdcard/sober_contacts_restore.vcf`. The desktop polls for `sober_import_result.json` via `run-as com.sober.admin cat cache/sober_import_result.json` at 250ms intervals with a 15-second deadline (same pattern as `ListApps`). This avoids the `file://` URI restriction (Android 7+ blocks `file://` URIs across process boundaries via Intent). This requires a third new broadcast action in the SoberAdmin APK (see table below). If the backup file is missing, this step is silently skipped.
 
 4. **Confirm completion:**
    > "Your phone has been fully restored. SoberAdmin is no longer active."
