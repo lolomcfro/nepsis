@@ -159,7 +159,7 @@ The reset flow reads `setup_mode` from `config.json` and executes the correct te
 
 ## SoberAdmin APK Changes Required
 
-Two new broadcast actions must be added to the SoberAdmin APK:
+Three new broadcast actions must be added to the SoberAdmin APK:
 
 | Action | Description |
 |---|---|
