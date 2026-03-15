@@ -3,6 +3,8 @@
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
+    <uses-permission android:name="android.permission.READ_CONTACTS"/>
+    <uses-permission android:name="android.permission.WRITE_CONTACTS"/>
 
     <application
         android:allowBackup="false"
@@ -32,6 +34,9 @@
                 <action android:name="com.sober.SHOW_APP"/>
                 <action android:name="com.sober.LIST_APPS"/>
                 <action android:name="com.sober.APPLY_RESTRICTIONS"/>
+                <action android:name="com.sober.EXPORT_CONTACTS"/>
+                <action android:name="com.sober.IMPORT_CONTACTS"/>
+                <action android:name="com.sober.CLEAR_DEVICE_OWNER"/>
                 <action android:name="android.intent.action.PACKAGE_REPLACED"/>
                 <data android:scheme="package"/>
             </intent-filter>
