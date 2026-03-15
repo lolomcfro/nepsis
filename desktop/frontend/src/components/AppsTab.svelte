@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
   import { getApps, getKnownStores, hideApp, showApp, uninstallApp } from '../lib/wails'
   import type { App } from '../lib/wails'
 
@@ -54,8 +53,7 @@
     } catch (e: any) {
       error = `Failed to hide ${app.label}: ${e?.message ?? e}`
     } finally {
-      acting.delete(app.package)
-      acting = new Set(acting)
+      acting = new Set([...acting].filter(p => p !== app.package))
     }
   }
 
@@ -70,8 +68,7 @@
     } catch (e: any) {
       error = `Failed to show ${app.label}: ${e?.message ?? e}`
     } finally {
-      acting.delete(app.package)
-      acting = new Set(acting)
+      acting = new Set([...acting].filter(p => p !== app.package))
     }
   }
 
@@ -91,7 +88,6 @@
     }
   }
 
-  onMount(load)
   $: if (connected) load()
 </script>
 
@@ -126,7 +122,7 @@
       <div class="section-header">App Stores — Auto-hidden</div>
       <ul class="app-list">
         {#each filteredStoreApps as app (app.package)}
-          <li class="app-item faded">
+          <li class="app-item" class:faded={app.hidden}>
             {#if app.icon}
               <img src="data:image/png;base64,{app.icon}" alt="" class="app-icon" />
             {:else}
@@ -137,58 +133,70 @@
               <span class="app-package">{app.package}</span>
             </div>
             <span class="store-tag">Store</span>
-            <button
-              class="btn-show"
-              disabled={acting.has(app.package)}
-              on:click={() => show(app)}
-            >
-              {acting.has(app.package) ? '…' : 'Show'}
-            </button>
+            {#if app.hidden}
+              <button
+                class="btn-show"
+                disabled={acting.has(app.package)}
+                on:click={() => show(app)}
+              >
+                {acting.has(app.package) ? '…' : 'Show'}
+              </button>
+            {:else}
+              <button
+                class="btn-hide"
+                disabled={acting.has(app.package)}
+                on:click={() => hide(app)}
+              >
+                {acting.has(app.package) ? '…' : 'Hide'}
+              </button>
+            {/if}
           </li>
         {/each}
       </ul>
     {/if}
 
-    <div class="section-header">Apps</div>
-    <ul class="app-list">
-      {#each filteredRegularApps as app (app.package)}
-        <li class="app-item" class:faded={app.hidden}>
-          {#if app.icon}
-            <img src="data:image/png;base64,{app.icon}" alt="" class="app-icon" />
-          {:else}
-            <div class="app-icon placeholder"></div>
-          {/if}
-          <div class="app-info">
-            <span class="app-label">{app.label}</span>
-            <span class="app-package">{app.package}</span>
-          </div>
-          {#if app.hidden}
+    {#if filteredRegularApps.length > 0}
+      <div class="section-header">Apps</div>
+      <ul class="app-list">
+        {#each filteredRegularApps as app (app.package)}
+          <li class="app-item" class:faded={app.hidden}>
+            {#if app.icon}
+              <img src="data:image/png;base64,{app.icon}" alt="" class="app-icon" />
+            {:else}
+              <div class="app-icon placeholder"></div>
+            {/if}
+            <div class="app-info">
+              <span class="app-label">{app.label}</span>
+              <span class="app-package">{app.package}</span>
+            </div>
+            {#if app.hidden}
+              <button
+                class="btn-show"
+                disabled={acting.has(app.package)}
+                on:click={() => show(app)}
+              >
+                {acting.has(app.package) ? '…' : 'Show'}
+              </button>
+            {:else}
+              <button
+                class="btn-hide"
+                disabled={acting.has(app.package)}
+                on:click={() => hide(app)}
+              >
+                {acting.has(app.package) ? '…' : 'Hide'}
+              </button>
+            {/if}
             <button
-              class="btn-show"
+              class="btn-delete"
               disabled={acting.has(app.package)}
-              on:click={() => show(app)}
+              on:click={() => confirmDelete = app}
             >
-              {acting.has(app.package) ? '…' : 'Show'}
+              Delete
             </button>
-          {:else}
-            <button
-              class="btn-hide"
-              disabled={acting.has(app.package)}
-              on:click={() => hide(app)}
-            >
-              {acting.has(app.package) ? '…' : 'Hide'}
-            </button>
-          {/if}
-          <button
-            class="btn-delete"
-            disabled={acting.has(app.package)}
-            on:click={() => confirmDelete = app}
-          >
-            Delete
-          </button>
-        </li>
-      {/each}
-    </ul>
+          </li>
+        {/each}
+      </ul>
+    {/if}
 
   {/if}
 </div>
