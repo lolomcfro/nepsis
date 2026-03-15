@@ -64,6 +64,9 @@
     try {
       await showApp(app.package)
       app.hidden = false
+      const fresh = await getApps()
+      const updated = fresh.find(a => a.package === app.package)
+      if (updated) app.icon = updated.icon
       apps = [...apps]
     } catch (e: any) {
       error = `Failed to show ${app.label}: ${e?.message ?? e}`
@@ -111,7 +114,7 @@
   {/if}
 
   {#if loading}
-    <p class="hint">Loading apps from phone… (may take up to 10 seconds)</p>
+    <p class="hint">Loading apps from phone…</p>
   {:else if totalFiltered === 0 && apps.length > 0}
     <p class="hint">No apps match "{search}"</p>
   {:else if apps.length === 0}

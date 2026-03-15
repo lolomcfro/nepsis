@@ -6,7 +6,7 @@
   import AppsTab from './components/AppsTab.svelte'
   import InstallTab from './components/InstallTab.svelte'
 
-  let activeTab = 'setup'
+  let activeTab = 'apps'
   let connected = false
   let serial = ''
   let deviceOwnerInstalled = false
