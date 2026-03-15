@@ -321,6 +321,199 @@ func TestUninstallAppError(t *testing.T) {
 	}
 }
 
+func TestCountGoogleAccounts(t *testing.T) {
+	t.Run("returns count when accounts present", func(t *testing.T) {
+		fake := &fakeRunner{output: "Account {name=a@gmail.com, type=com.google}\nAccount {name=b@gmail.com, type=com.google}\n"}
+		c := adb.NewCommands(fake)
+		n, err := c.CountGoogleAccounts()
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if n != 2 {
+			t.Errorf("expected 2, got %d", n)
+		}
+	})
+
+	t.Run("returns 0 when no accounts", func(t *testing.T) {
+		fake := &fakeRunner{output: "Accounts: 0\n"}
+		c := adb.NewCommands(fake)
+		n, err := c.CountGoogleAccounts()
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if n != 0 {
+			t.Errorf("expected 0, got %d", n)
+		}
+	})
+
+	t.Run("returns 0 on runner error (fail open)", func(t *testing.T) {
+		fake := &fakeRunner{err: fmt.Errorf("adb fail")}
+		c := adb.NewCommands(fake)
+		n, err := c.CountGoogleAccounts()
+		if err != nil {
+			t.Fatalf("fail-open: expected nil, got %v", err)
+		}
+		if n != 0 {
+			t.Errorf("expected 0 on error, got %d", n)
+		}
+	})
+}
+
+func TestOpenAccountSettings(t *testing.T) {
+	fake := &fakeRunner{}
+	c := adb.NewCommands(fake)
+	err := c.OpenAccountSettings()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	call := strings.Join(fake.calls[0], " ")
+	if !strings.Contains(call, "android.settings.SYNC_SETTINGS") {
+		t.Errorf("expected SYNC_SETTINGS intent, got: %s", call)
+	}
+}
+
+func TestExportContacts(t *testing.T) {
+	vcf := "BEGIN:VCARD\r\nVERSION:3.0\r\nFN:Test\r\nEND:VCARD\r\n"
+
+	t.Run("success with contacts", func(t *testing.T) {
+		fake := &callTrackingRunner{
+			responses: map[string]string{
+				"broadcast": "",
+				"cat":       vcf,
+				"rm":        "",
+			},
+		}
+		c := adb.NewCommands(fake)
+		result, err := c.ExportContacts()
+		if err != nil {
+			t.Fatalf("ExportContacts error: %v", err)
+		}
+		if !strings.Contains(result, "BEGIN:VCARD") {
+			t.Errorf("expected VCF content, got: %s", result)
+		}
+	})
+
+	t.Run("success with no contacts (empty file)", func(t *testing.T) {
+		fake := &callTrackingRunner{
+			responses: map[string]string{
+				"broadcast": "",
+				"cat":       "",
+				"rm":        "",
+			},
+		}
+		c := adb.NewCommands(fake)
+		result, err := c.ExportContacts()
+		if err != nil {
+			t.Fatalf("ExportContacts error: %v", err)
+		}
+		if result != "" {
+			t.Errorf("expected empty string for no contacts, got: %s", result)
+		}
+	})
+
+	t.Run("broadcast error", func(t *testing.T) {
+		fake := &fakeRunner{err: fmt.Errorf("device not found")}
+		c := adb.NewCommands(fake)
+		_, err := c.ExportContacts()
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+	})
+
+	t.Run("device error response", func(t *testing.T) {
+		fake := &callTrackingRunner{
+			responses: map[string]string{
+				"broadcast": "",
+				"cat":       `{"error":"permission denied"}`,
+				"rm":        "",
+			},
+		}
+		c := adb.NewCommands(fake)
+		_, err := c.ExportContacts()
+		if err == nil {
+			t.Fatal("expected error from device, got nil")
+		}
+		if !strings.Contains(err.Error(), "EXPORT_CONTACTS failed") {
+			t.Errorf("unexpected error: %v", err)
+		}
+	})
+}
+
+func TestImportContacts(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		fake := &callTrackingRunner{
+			responses: map[string]string{
+				"push":      "",
+				"broadcast": "",
+				"cat":       `{"success":true,"count":3}`,
+				"rm":        "",
+			},
+		}
+		c := adb.NewCommands(fake)
+		err := c.ImportContacts("/tmp/backup.vcf")
+		if err != nil {
+			t.Fatalf("ImportContacts error: %v", err)
+		}
+	})
+
+	t.Run("push error", func(t *testing.T) {
+		fake := &fakeRunner{err: fmt.Errorf("push failed")}
+		c := adb.NewCommands(fake)
+		err := c.ImportContacts("/tmp/backup.vcf")
+		if err == nil {
+			t.Fatal("expected error on push failure")
+		}
+		if !strings.Contains(err.Error(), "push contacts") {
+			t.Errorf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("device error response", func(t *testing.T) {
+		fake := &callTrackingRunner{
+			responses: map[string]string{
+				"push":      "",
+				"broadcast": "",
+				"cat":       `{"error":"file not found"}`,
+				"rm":        "",
+			},
+		}
+		c := adb.NewCommands(fake)
+		err := c.ImportContacts("/tmp/backup.vcf")
+		if err == nil {
+			t.Fatal("expected error from device")
+		}
+		if !strings.Contains(err.Error(), "IMPORT_CONTACTS failed") {
+			t.Errorf("unexpected error: %v", err)
+		}
+	})
+}
+
+func TestClearDeviceOwner(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		// After the broadcast, dpm list-owners returns no sober.admin
+		fake := &callTrackingRunner{
+			responses: map[string]string{
+				"broadcast":   "",
+				"list-owners": "{}",  // no device owner
+			},
+		}
+		c := adb.NewCommands(fake)
+		err := c.ClearDeviceOwner()
+		if err != nil {
+			t.Fatalf("ClearDeviceOwner error: %v", err)
+		}
+	})
+
+	t.Run("broadcast error", func(t *testing.T) {
+		fake := &fakeRunner{err: fmt.Errorf("device offline")}
+		c := adb.NewCommands(fake)
+		err := c.ClearDeviceOwner()
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+	})
+}
+
 func TestGetKnownStoreList(t *testing.T) {
 	stores := adb.GetKnownStoreList()
 	if len(stores) == 0 {
