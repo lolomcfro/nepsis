@@ -54,3 +54,5 @@ export const runInstall = (): Promise<void> => RunInstall()
 // Reset
 export const runReset = (): Promise<void> => RunReset()
 export const importContactsFromBackup = (): Promise<void> => ImportContactsFromBackup()
+export type ResetStepEvent = { step: 'unhide' | 'device-owner', status: 'running' | 'done' | 'error' }
+export const onResetStep = (cb: (e: ResetStepEvent) => void): (() => void) => EventsOn('reset:step', cb)

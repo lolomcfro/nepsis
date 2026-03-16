@@ -146,6 +146,19 @@ func (c *Commands) InstallAPK(path string) error {
 	return nil
 }
 
+// InstallSplitAPKs installs a set of APK splits using an adb install-multiple session.
+func (c *Commands) InstallSplitAPKs(paths []string) error {
+	args := append([]string{"install-multiple", "-r"}, paths...)
+	out, err := c.runner.Run(args...)
+	if err != nil {
+		return err
+	}
+	if !strings.Contains(out, "Success") {
+		return fmt.Errorf("install failed: %s", out)
+	}
+	return nil
+}
+
 // CheckAccounts returns an error if user accounts are present on the device,
 // which would prevent set-device-owner from succeeding.
 // Fails open (returns nil) if the check itself cannot run.
@@ -165,11 +178,21 @@ func (c *Commands) CheckAccounts() error {
 
 // SetDeviceOwner grants Device Owner to SoberAdmin.
 func (c *Commands) SetDeviceOwner() error {
-	out, err := c.runner.Run(
-		"shell", "dpm", "set-device-owner",
-		"com.sober.admin/.AdminReceiver",
-	)
-	if err != nil {
+	const maxRetries = 5
+	var out string
+	var err error
+	for attempt := 0; attempt < maxRetries; attempt++ {
+		out, err = c.runner.Run(
+			"shell", "dpm", "set-device-owner",
+			"com.sober.admin/.AdminReceiver",
+		)
+		if err == nil {
+			break
+		}
+		if strings.Contains(err.Error(), "there are already some accounts on the device") && attempt < maxRetries-1 {
+			time.Sleep(1 * time.Second)
+			continue
+		}
 		if strings.Contains(err.Error(), "there are already some accounts on the device") {
 			return fmt.Errorf("Google accounts are still on this device — " +
 				"go to Settings › Accounts and remove them all, then try again")

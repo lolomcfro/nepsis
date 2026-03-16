@@ -1,11 +1,14 @@
 package main
 
 import (
+	"archive/zip"
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/sober/desktop/adb"
@@ -160,17 +163,77 @@ func (a *App) GetKnownStores() []string {
 func (a *App) OpenFileDialog() (string, error) {
 	return wailsruntime.OpenFileDialog(a.ctx, wailsruntime.OpenDialogOptions{
 		Filters: []wailsruntime.FileFilter{
-			{DisplayName: "APK Files", Pattern: "*.apk"},
+			{DisplayName: "App Packages", Pattern: "*.apk;*.apkm;*.xapk;*.apks"},
 		},
 	})
 }
 
-// InstallAPK installs an APK from the given local path.
+// extractAPKsFromZip extracts all *.apk entries from a ZIP archive to a temp
+// directory. Returns the extracted paths and a cleanup func. Returns an error
+// if the archive contains no APK entries.
+func extractAPKsFromZip(zipPath string) (paths []string, cleanup func(), err error) {
+	r, err := zip.OpenReader(zipPath)
+	if err != nil {
+		return nil, func() {}, fmt.Errorf("open bundle: %w", err)
+	}
+	defer r.Close()
+
+	dir, err := os.MkdirTemp("", "sober-apkbundle-*")
+	if err != nil {
+		return nil, func() {}, fmt.Errorf("create temp dir: %w", err)
+	}
+	cleanup = func() { os.RemoveAll(dir) }
+
+	for _, f := range r.File {
+		if !strings.HasSuffix(strings.ToLower(f.Name), ".apk") {
+			continue
+		}
+		dest := filepath.Join(dir, filepath.Base(f.Name))
+		rc, err := f.Open()
+		if err != nil {
+			cleanup()
+			return nil, func() {}, fmt.Errorf("open entry %s: %w", f.Name, err)
+		}
+		out, err := os.Create(dest)
+		if err != nil {
+			rc.Close()
+			cleanup()
+			return nil, func() {}, fmt.Errorf("create %s: %w", dest, err)
+		}
+		_, err = io.Copy(out, rc)
+		rc.Close()
+		out.Close()
+		if err != nil {
+			cleanup()
+			return nil, func() {}, fmt.Errorf("extract %s: %w", f.Name, err)
+		}
+		paths = append(paths, dest)
+	}
+
+	if len(paths) == 0 {
+		cleanup()
+		return nil, func() {}, fmt.Errorf("bundle contains no APK files")
+	}
+	return paths, cleanup, nil
+}
+
+// InstallAPK installs an APK or split bundle from the given local path.
 func (a *App) InstallAPK(path string) error {
 	if !a.connected {
 		return fmt.Errorf("no phone connected")
 	}
-	return a.commands.InstallAPK(path)
+	ext := strings.ToLower(filepath.Ext(path))
+	switch ext {
+	case ".apkm", ".xapk", ".apks":
+		paths, cleanup, err := extractAPKsFromZip(path)
+		defer cleanup()
+		if err != nil {
+			return err
+		}
+		return a.commands.InstallSplitAPKs(paths)
+	default:
+		return a.commands.InstallAPK(path)
+	}
 }
 
 // RunInstall installs SoberAdmin, sets Device Owner, and applies restrictions.
@@ -284,6 +347,7 @@ func (a *App) RunReset() error {
 		return fmt.Errorf("no phone connected")
 	}
 	// Step 1: Show all hidden apps (must happen before Device Owner is removed)
+	wailsruntime.EventsEmit(a.ctx, "reset:step", map[string]interface{}{"step": "unhide", "status": "running"})
 	apps, err := a.appManager.ListApps()
 	if err != nil {
 		return fmt.Errorf("list apps for reset: %w", err)
@@ -295,10 +359,13 @@ func (a *App) RunReset() error {
 			}
 		}
 	}
+	wailsruntime.EventsEmit(a.ctx, "reset:step", map[string]interface{}{"step": "unhide", "status": "done"})
 	// Step 2: Remove Device Owner
+	wailsruntime.EventsEmit(a.ctx, "reset:step", map[string]interface{}{"step": "device-owner", "status": "running"})
 	if err := a.commands.ClearDeviceOwner(); err != nil {
 		return fmt.Errorf("clear device owner: %w", err)
 	}
+	wailsruntime.EventsEmit(a.ctx, "reset:step", map[string]interface{}{"step": "device-owner", "status": "done"})
 	return nil
 }
 

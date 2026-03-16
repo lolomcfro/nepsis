@@ -2,9 +2,11 @@
   import { onDestroy, createEventDispatcher } from 'svelte'
   import {
     getGoogleAccountCount, openAccountSettings, exportContactsToDesktop,
-    getContactsBackupInfo, runInstall, runReset, importContactsFromBackup
+    getContactsBackupInfo, runInstall, runReset, importContactsFromBackup, onResetStep
   } from '../lib/wails'
   import type { ContactsBackupInfo } from '../lib/wails'
+  // @ts-ignore
+  import { Quit } from '../../wailsjs/runtime/runtime'
 
   export let connected: boolean
   export let deviceOwnerInstalled: boolean
@@ -17,6 +19,7 @@
     | 'backup-consent'
     | 'backing-up'
     | 'guide-removal'
+    | 'ready-to-install'
     | 'installing'
     | 'success'
     | 'error'
@@ -30,10 +33,15 @@
   let isDetecting = false  // guard against re-entrant detectAccounts() calls
 
   // ── Reset state (post-setup mode) ───────────────────────────────────────
-  type ResetState = 'idle' | 'confirm' | 'resetting' | 'restore-prompt' | 'restoring' | 'reset-done'
+  type ResetState = 'idle' | 'confirm' | 'progress' | 'restore-prompt' | 'restoring' | 'choose-next'
   let resetState: ResetState = 'idle'
   let resetError = ''
   let backupInfo: ContactsBackupInfo | null = null
+  let confirmInput = ''
+  let resetSteps: { label: string; status: 'pending' | 'running' | 'done' | 'error' }[] = [
+    { label: 'Unhiding all apps', status: 'pending' },
+    { label: 'Removing device owner', status: 'pending' },
+  ]
 
   // ── Auto-detect on connect ───────────────────────────────────────────────
   // Guard against re-entrancy: if connected toggles rapidly while detectAccounts()
@@ -43,7 +51,7 @@
   }
 
   // Only track disconnect when it can meaningfully pause the wizard.
-  $: if (!connected && (wizardStep === 'guide-removal' || wizardStep === 'detect' || wizardStep === 'installing')) {
+  $: if (!connected && (wizardStep === 'guide-removal' || wizardStep === 'detect' || wizardStep === 'installing' || wizardStep === 'ready-to-install')) {
     disconnectedDuringPoll = true
     stopPoll()
   }
@@ -59,8 +67,8 @@
     try {
       accountCount = await getGoogleAccountCount()
       if (accountCount === 0) {
-        // No accounts — skip backup and account-removal steps, go straight to install.
-        await doInstall()
+        // No accounts — skip backup and account-removal steps, go to install prompt.
+        wizardStep = 'ready-to-install'
       } else {
         wizardStep = 'backup-consent'
       }
@@ -98,7 +106,7 @@
         accountCount = await getGoogleAccountCount()
         if (accountCount === 0) {
           stopPoll()
-          await doInstall()
+          wizardStep = 'ready-to-install'
         }
       } catch {
         // Phone disconnected — reactive block handles resume
@@ -134,19 +142,32 @@
 
   // ── Reset flow ────────────────────────────────────────────────────────────
   async function startReset() {
-    resetState = 'resetting'
+    resetState = 'progress'
     resetError = ''
+    confirmInput = ''
+    resetSteps = [
+      { label: 'Unhiding all apps', status: 'pending' },
+      { label: 'Removing device owner', status: 'pending' },
+    ]
+    const off = onResetStep((e) => {
+      const map: Record<string, number> = { 'unhide': 0, 'device-owner': 1 }
+      const i = map[e.step]
+      if (i !== undefined) {
+        resetSteps[i] = { ...resetSteps[i], status: e.status }
+        resetSteps = [...resetSteps]
+      }
+    })
     try {
       await runReset()
+      off()
       backupInfo = await getContactsBackupInfo()
       if (backupInfo) {
         resetState = 'restore-prompt'
       } else {
-        resetState = 'reset-done'
-        deviceOwnerInstalled = false
-        dispatch('resetcomplete')
+        resetState = 'choose-next'
       }
     } catch (e: any) {
+      off()
       resetError = e?.message ?? String(e)
       resetState = 'idle'
     }
@@ -159,13 +180,22 @@
     } catch {
       // Non-fatal — contacts restore is best-effort
     }
-    resetState = 'reset-done'
-    deviceOwnerInstalled = false
-    dispatch('resetcomplete')
+    resetState = 'choose-next'
   }
 
   function skipRestore() {
-    resetState = 'reset-done'
+    resetState = 'choose-next'
+  }
+
+  function restartWizard() {
+    resetState = 'idle'
+    deviceOwnerInstalled = false
+    dispatch('resetcomplete')
+    wizardStep = 'detect'
+    // reactive statement fires detectAccounts()
+  }
+
+  function leaveUnrestricted() {
     deviceOwnerInstalled = false
     dispatch('resetcomplete')
   }
@@ -195,16 +225,43 @@
     {:else if resetState === 'confirm'}
       <div class="banner warning">
         <p>This will remove all restrictions, show all hidden apps, and remove SoberAdmin as Device Owner.</p>
+        <p>Type <strong>RESET</strong> to confirm:</p>
+        <input
+          class="confirm-input"
+          type="text"
+          bind:value={confirmInput}
+          placeholder="RESET"
+          autocomplete="off"
+        />
         <div class="button-row">
-          <button class="danger" on:click={startReset}>Reset Everything</button>
-          <button class="secondary" on:click={() => resetState = 'idle'}>Cancel</button>
+          <button class="danger" on:click={startReset} disabled={confirmInput !== 'RESET'}>
+            Reset Everything
+          </button>
+          <button class="secondary" on:click={() => { resetState = 'idle'; confirmInput = '' }}>
+            Cancel
+          </button>
         </div>
       </div>
 
-    {:else if resetState === 'resetting'}
+    {:else if resetState === 'progress'}
       <div class="progress">
-        <div class="spinner"></div>
         <p>Resetting phone — do not unplug…</p>
+        <ul class="reset-steps">
+          {#each resetSteps as step}
+            <li class="reset-step {step.status}">
+              {#if step.status === 'running'}
+                <span class="spinner-sm"></span>
+              {:else if step.status === 'done'}
+                ✓
+              {:else if step.status === 'error'}
+                ✗
+              {:else}
+                ·
+              {/if}
+              {step.label}
+            </li>
+          {/each}
+        </ul>
       </div>
 
     {:else if resetState === 'restore-prompt'}
@@ -223,9 +280,14 @@
         <p>Restoring contacts…</p>
       </div>
 
-    {:else if resetState === 'reset-done'}
-      <div class="banner success">
-        Your phone has been fully restored. SoberAdmin is no longer active.
+    {:else if resetState === 'choose-next'}
+      <div class="wizard-step">
+        <p class="step-lead">Reset complete. SoberAdmin is no longer active.</p>
+        <div class="button-col">
+          <button class="primary" on:click={restartWizard}>Set up again</button>
+          <button class="secondary" on:click={leaveUnrestricted}>Leave phone unrestricted</button>
+          <button class="secondary" on:click={() => Quit()}>Quit</button>
+        </div>
       </div>
     {/if}
 
@@ -268,8 +330,8 @@
           </p>
 
           <div class="warn-box">
-            <strong>Important:</strong> When Android asks what to do with your data — choose <strong>Keep</strong>.
-            {backupPath ? ' Your contacts are also backed up to this computer, so they\'re safe either way.' : ''}
+            <strong>Important:</strong> When Android asks to confirm account removal, just tap <strong>Remove account</strong>.
+            {backupPath ? ' Your contacts are backed up to this computer and will be restored after setup.' : ' If your contacts are only stored locally on this phone, they won\'t be affected.'}
           </div>
 
           <button class="primary" on:click={() => openAccountSettings().catch(() => {})}>
@@ -285,6 +347,14 @@
             <p class="hint">Contacts backup saved to: {backupPath}</p>
           {/if}
         {/if}
+      </div>
+
+    {:else if wizardStep === 'ready-to-install'}
+      <div class="wizard-step">
+        <p class="step-lead">Ready to install SoberAdmin on your phone.</p>
+        <div class="button-col">
+          <button class="primary" on:click={doInstall}>Install SoberAdmin</button>
+        </div>
       </div>
 
     {:else if wizardStep === 'installing'}
@@ -317,6 +387,7 @@
         <strong>Setup failed:</strong> {errorMessage}
         <button on:click={retryFromStart}>Try Again</button>
       </div>
+
     {/if}
   {/if}
 </div>
@@ -396,4 +467,51 @@
   .banner.info { background: #1a1a2e; border: 1px solid #312e81; border-left: 4px solid #7c6af7; color: #c4b5fd; }
   .banner p { margin-bottom: 6px; }
   .banner .hint { color: #9ca3af; font-size: 13px; }
+
+  .confirm-input {
+    width: 100%;
+    margin: 8px 0;
+    padding: 6px 10px;
+    font-size: 1rem;
+    border: 1px solid #92400e;
+    border-radius: 4px;
+    background: #1a1207;
+    color: #fcd34d;
+    box-sizing: border-box;
+  }
+
+  .reset-steps {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0 0;
+    text-align: left;
+  }
+
+  .reset-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    color: #6b7280;
+  }
+
+  .reset-step.running { color: #e2e2e8; }
+  .reset-step.done    { color: #4ade80; }
+  .reset-step.error   { color: #f87171; }
+
+  .spinner-sm {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+
+  .danger:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
 </style>

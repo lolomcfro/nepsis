@@ -37,10 +37,11 @@
 </script>
 
 <div class="install-tab">
-  <h2>Install APK</h2>
+  <h2>Install App</h2>
   <p class="description">
     Since the Play Store is hidden, this is the only way to install new apps.
-    Select an APK file from your computer to install it on your phone.
+    Select an app package from your computer to install it on your phone.
+    Supports plain APKs (<code>.apk</code>) and split bundles (<code>.apkm</code>, <code>.xapk</code>, <code>.apks</code>).
   </p>
 
   <div class="file-picker">
