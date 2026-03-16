@@ -11,7 +11,7 @@ android {
         applicationId "com.sober.admin"
         minSdk 26
         targetSdk 34
-        versionCode 1
+        versionCode 2
         versionName "1.0"
     }
 
@@ -26,6 +26,9 @@ android {
 
     buildTypes {
         release {
+            // debuggable must remain true — the run-as contacts backup mechanism
+            // (EXPORT_CONTACTS, IMPORT_CONTACTS) requires adb run-as access,
+            // which only works on debuggable builds. Do not remove.
             debuggable true
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')

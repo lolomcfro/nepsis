@@ -37,6 +37,10 @@
     } catch {}
   }
 
+  function handleResetComplete() {
+    deviceOwnerInstalled = false
+  }
+
   onMount(async () => {
     const status = await getConnectionStatus()
     connected = status.connected
@@ -117,7 +121,7 @@
 
   <main class="content">
     {#if activeTab === 'setup'}
-      <SetupTab {connected} {deviceOwnerInstalled} on:setupcomplete={handleSetupComplete} />
+      <SetupTab {connected} {deviceOwnerInstalled} on:setupcomplete={handleSetupComplete} on:resetcomplete={handleResetComplete} />
     {:else if activeTab === 'apps'}
       <AppsTab {connected} />
     {:else if activeTab === 'install'}
