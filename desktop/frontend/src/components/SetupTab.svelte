@@ -321,7 +321,6 @@
                 <li>Access your passwords or accounts</li>
                 <li>Send any data to a server — it works entirely offline, no account required</li>
               </ul>
-              <p class="hint">Changes require your phone physically connected via USB cable — making it harder to undo settings on impulse.</p>
             </div>
           </details>
         </div>
@@ -555,9 +554,11 @@
     user-select: none;
   }
   .trust-section summary:hover { color: #c4b5fd; }
+  .trust-section[open] summary { color: #c4b5fd; border-bottom: 1px solid #2a2a38; }
+  .trust-section summary:focus-visible { outline: 2px solid #7c6af7; outline-offset: 2px; }
   .trust-body {
     padding: 12px 16px;
-    background: #12121e;
+    background: #1a1a2e;
     font-size: 13px;
     color: #9ca3af;
     line-height: 1.7;
