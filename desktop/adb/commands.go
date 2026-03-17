@@ -176,8 +176,29 @@ func (c *Commands) CheckAccounts() error {
 	return nil
 }
 
+// checkExistingDeviceOwner returns a user-friendly error if any device owner is
+// already set, nil otherwise. Fails open on runner error.
+func (c *Commands) checkExistingDeviceOwner() error {
+	out, err := c.runner.Run("shell", "dpm", "list-owners")
+	if err != nil {
+		return nil // can't check; the actual set-device-owner call will fail if needed
+	}
+	out = strings.TrimSpace(out)
+	if out == "" || out == "{}" {
+		return nil
+	}
+	if strings.Contains(out, "com.sober.admin") {
+		return fmt.Errorf("Accountability Mode is already active on this phone.")
+	}
+	return fmt.Errorf("Another app is controlling this phone. It must be removed before Sober can be set up.")
+}
+
 // SetDeviceOwner grants Device Owner to SoberAdmin.
 func (c *Commands) SetDeviceOwner() error {
+	if err := c.checkExistingDeviceOwner(); err != nil {
+		return err
+	}
+
 	const maxRetries = 5
 	var out string
 	var err error

@@ -171,7 +171,12 @@ func TestCheckAccounts(t *testing.T) {
 
 func TestSetDeviceOwner(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		fake := &fakeRunner{output: "Success"}
+		fake := &callTrackingRunner{
+			responses: map[string]string{
+				"list-owners":      "{}",
+				"set-device-owner": "Success",
+			},
+		}
 		c := adb.NewCommands(fake)
 		if err := c.SetDeviceOwner(); err != nil {
 			t.Fatalf("expected no error, got: %v", err)
@@ -187,7 +192,12 @@ func TestSetDeviceOwner(t *testing.T) {
 	})
 
 	t.Run("output contains error", func(t *testing.T) {
-		fake := &fakeRunner{output: "Error: already set"}
+		fake := &callTrackingRunner{
+			responses: map[string]string{
+				"list-owners":      "{}",
+				"set-device-owner": "Error: already set",
+			},
+		}
 		c := adb.NewCommands(fake)
 		if err := c.SetDeviceOwner(); err == nil {
 			t.Fatal("expected error for error output, got nil")
@@ -203,6 +213,38 @@ func TestSetDeviceOwner(t *testing.T) {
 		}
 		if !strings.Contains(err.Error(), "Google accounts are still on this device") {
 			t.Errorf("expected friendly message, got: %v", err)
+		}
+	})
+
+	t.Run("sober-admin already device owner", func(t *testing.T) {
+		fake := &callTrackingRunner{
+			responses: map[string]string{
+				"list-owners": "com.sober.admin/.AdminReceiver (User 0)",
+			},
+		}
+		c := adb.NewCommands(fake)
+		err := c.SetDeviceOwner()
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+		if !strings.Contains(err.Error(), "Accountability Mode is already active") {
+			t.Errorf("expected friendly already-active message, got: %v", err)
+		}
+	})
+
+	t.Run("different app is device owner", func(t *testing.T) {
+		fake := &callTrackingRunner{
+			responses: map[string]string{
+				"list-owners": "com.other.mdm/.AdminReceiver (User 0)",
+			},
+		}
+		c := adb.NewCommands(fake)
+		err := c.SetDeviceOwner()
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+		if !strings.Contains(err.Error(), "Another app is controlling") {
+			t.Errorf("expected other-owner message, got: %v", err)
 		}
 	})
 }
