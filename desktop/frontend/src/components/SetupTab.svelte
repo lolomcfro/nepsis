@@ -295,10 +295,37 @@
     <!-- ── Setup wizard ── -->
 
     {#if wizardStep === 'detect'}
-      <div class="progress">
-        <div class="spinner"></div>
-        <p>{connected ? 'Checking phone…' : 'Waiting for phone connection…'}</p>
-      </div>
+      {#if connected}
+        <div class="progress">
+          <div class="spinner"></div>
+          <p>Checking phone…</p>
+        </div>
+      {:else}
+        <div class="wizard-step">
+          <p class="step-lead">Plug your phone into this computer with a USB cable to get started.</p>
+          <details class="trust-section">
+            <summary>How does this work?</summary>
+            <div class="trust-body">
+              <p><strong>What Sober does:</strong></p>
+              <ul>
+                <li>Hides or locks apps you choose</li>
+                <li>Prevents installing new apps</li>
+                <li>Requires a USB cable and computer to make changes — adding friction between you and impulsive decisions</li>
+                <li>Backs up your contacts to this computer at your request</li>
+              </ul>
+              <p><strong>What Sober cannot do:</strong></p>
+              <ul>
+                <li>Read your messages or emails</li>
+                <li>Access your photos or files</li>
+                <li>Track your location</li>
+                <li>Access your passwords or accounts</li>
+                <li>Send any data to a server — it works entirely offline, no account required</li>
+              </ul>
+              <p class="hint">Changes require your phone physically connected via USB cable — making it harder to undo settings on impulse.</p>
+            </div>
+          </details>
+        </div>
+      {/if}
 
     {:else if wizardStep === 'backup-consent'}
       <div class="wizard-step">
@@ -514,4 +541,28 @@
     opacity: 0.4;
     cursor: not-allowed;
   }
+
+  .trust-section {
+    border: 1px solid #2a2a38;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .trust-section summary {
+    padding: 10px 14px;
+    cursor: pointer;
+    color: #9ca3af;
+    font-size: 14px;
+    user-select: none;
+  }
+  .trust-section summary:hover { color: #c4b5fd; }
+  .trust-body {
+    padding: 12px 16px;
+    background: #12121e;
+    font-size: 13px;
+    color: #9ca3af;
+    line-height: 1.7;
+  }
+  .trust-body p { margin: 8px 0 4px; color: #e2e2e8; }
+  .trust-body ul { margin: 0 0 8px; padding-left: 20px; }
+  .trust-body li { margin: 3px 0; }
 </style>
