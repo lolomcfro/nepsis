@@ -40,7 +40,7 @@
   let confirmInput = ''
   let resetSteps: { label: string; status: 'pending' | 'running' | 'done' | 'error' }[] = [
     { label: 'Unhiding all apps', status: 'pending' },
-    { label: 'Removing device owner', status: 'pending' },
+    { label: 'Deactivating Accountability Mode', status: 'pending' },
   ]
 
   // ── Auto-detect on connect ───────────────────────────────────────────────
@@ -147,7 +147,7 @@
     confirmInput = ''
     resetSteps = [
       { label: 'Unhiding all apps', status: 'pending' },
-      { label: 'Removing device owner', status: 'pending' },
+      { label: 'Deactivating Accountability Mode', status: 'pending' },
     ]
     const off = onResetStep((e) => {
       const map: Record<string, number> = { 'unhide': 0, 'device-owner': 1 }
