@@ -331,7 +331,7 @@
 
           <div class="warn-box">
             <strong>When prompted on your phone:</strong> tap <strong>Remove account</strong>.
-            {backupPath ? ' Your contacts are backed up to this computer.' : ''}
+            {backupPath ? ' Your contacts are backed up to this computer.' : ' Your contacts stored on the phone will not be deleted.'}
           </div>
 
           <button class="primary" on:click={() => openAccountSettings().catch(() => {})}>
@@ -353,7 +353,7 @@
       <div class="wizard-step">
         <p class="step-lead">Ready to activate Accountability Mode on your phone.</p>
         <div class="button-col">
-          <button class="primary" on:click={doInstall}>Set Up</button>
+          <button class="primary" on:click={doInstall}>Activate</button>
         </div>
       </div>
 
