@@ -209,7 +209,7 @@
   {#if deviceOwnerInstalled}
     <!-- ── Post-setup state ── -->
     <div class="banner success">
-      SoberAdmin is installed and active as Device Owner. Your phone is locked down.
+      Accountability Manager is active. Your phone is in Accountability Mode.
     </div>
 
     {#if resetState === 'idle'}
@@ -218,13 +218,13 @@
           <div class="banner error" style="margin-bottom: 12px">{resetError}</div>
         {/if}
         <button class="danger" on:click={() => resetState = 'confirm'}>
-          Reset Phone
+          Remove Accountability Mode
         </button>
       </div>
 
     {:else if resetState === 'confirm'}
       <div class="banner warning">
-        <p>This will remove all restrictions, show all hidden apps, and remove SoberAdmin as Device Owner.</p>
+        <p>This will show all hidden apps and remove Accountability Mode from your phone.</p>
         <p>Type <strong>RESET</strong> to confirm:</p>
         <input
           class="confirm-input"
@@ -245,7 +245,7 @@
 
     {:else if resetState === 'progress'}
       <div class="progress">
-        <p>Resetting phone — do not unplug…</p>
+        <p>Removing Accountability Mode — do not unplug…</p>
         <ul class="reset-steps">
           {#each resetSteps as step}
             <li class="reset-step {step.status}">
@@ -266,7 +266,7 @@
 
     {:else if resetState === 'restore-prompt'}
       <div class="banner info">
-        <p>Device Owner removed. We have a contacts backup from <strong>{backupInfo?.date}</strong>.</p>
+        <p>Accountability Mode removed. We have a contacts backup from <strong>{backupInfo?.date}</strong>.</p>
         <p class="hint">Restore it to your phone?</p>
         <div class="button-row">
           <button class="primary" on:click={doRestore}>Restore contacts</button>
@@ -282,7 +282,7 @@
 
     {:else if resetState === 'choose-next'}
       <div class="wizard-step">
-        <p class="step-lead">Reset complete. SoberAdmin is no longer active.</p>
+        <p class="step-lead">Done. Accountability Mode has been removed from your phone.</p>
         <div class="button-col">
           <button class="primary" on:click={restartWizard}>Set up again</button>
           <button class="secondary" on:click={leaveUnrestricted}>Leave phone unrestricted</button>
@@ -325,17 +325,17 @@
           <div class="banner warning">Phone disconnected — plug it back in to continue.</div>
         {:else}
           <p class="step-lead">
-            {accountCount === 1 ? '1 Google account' : `${accountCount} Google accounts`}
-            {accountCount === 1 ? 'needs' : 'need'} to be removed before setup can continue.
+            You have {accountCount === 1 ? '1 Google account' : `${accountCount} Google accounts`} on this phone.
+            Android requires these to be removed before Accountability Mode can be activated — your Google data stays safe and accessible from any browser.
           </p>
 
           <div class="warn-box">
-            <strong>Important:</strong> When Android asks to confirm account removal, just tap <strong>Remove account</strong>.
-            {backupPath ? ' Your contacts are backed up to this computer and will be restored after setup.' : ' If your contacts are only stored locally on this phone, they won\'t be affected.'}
+            <strong>When prompted on your phone:</strong> tap <strong>Remove account</strong>.
+            {backupPath ? ' Your contacts are backed up to this computer.' : ''}
           </div>
 
           <button class="primary" on:click={() => openAccountSettings().catch(() => {})}>
-            Open Account Settings on my phone
+            Open Account Settings on Phone
           </button>
 
           <div class="poll-status">
@@ -351,9 +351,9 @@
 
     {:else if wizardStep === 'ready-to-install'}
       <div class="wizard-step">
-        <p class="step-lead">Ready to install SoberAdmin on your phone.</p>
+        <p class="step-lead">Ready to activate Accountability Mode on your phone.</p>
         <div class="button-col">
-          <button class="primary" on:click={doInstall}>Install SoberAdmin</button>
+          <button class="primary" on:click={doInstall}>Set Up</button>
         </div>
       </div>
 
@@ -366,14 +366,14 @@
       {:else}
         <div class="progress">
           <div class="spinner"></div>
-          <p>Setting up SoberAdmin — do not unplug your phone…</p>
+          <p>Setting up Accountability Mode — do not unplug your phone…</p>
         </div>
       {/if}
 
     {:else if wizardStep === 'success'}
       <div class="banner success">
-        Setup complete! Your phone is now locked down.<br>
-        Switch to the <strong>Apps</strong> tab to manage app visibility.
+        Done! Accountability Mode is active.<br>
+        Switch to the <strong>Apps</strong> tab to choose which apps to hide.
       </div>
       <div class="readd-section">
         <p>You can now re-add your Google account. Your synced contacts will return automatically.</p>
