@@ -184,13 +184,15 @@ func (c *Commands) checkExistingDeviceOwner() error {
 		return nil // can't check; the actual set-device-owner call will fail if needed
 	}
 	out = strings.TrimSpace(out)
-	if out == "" || out == "{}" {
-		return nil
-	}
 	if strings.Contains(out, "com.sober.admin") {
-		return fmt.Errorf("Accountability Mode is already active on this phone.")
+		return fmt.Errorf("Accountability Mode is already active on this phone")
 	}
-	return fmt.Errorf("Another app is controlling this phone. It must be removed before Sober can be set up.")
+	// Only report "another app" if output contains "/" (Android component name format).
+	// This avoids false positives from unexpected empty-owner output formats.
+	if strings.Contains(out, "/") {
+		return fmt.Errorf("Another app is controlling this phone. It must be removed before Sober can be set up")
+	}
+	return nil
 }
 
 // SetDeviceOwner grants Device Owner to SoberAdmin.
