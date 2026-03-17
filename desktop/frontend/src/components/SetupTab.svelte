@@ -200,6 +200,30 @@
     dispatch('resetcomplete')
   }
 
+  function friendlyError(msg: string): string {
+    if (!msg) return 'An unknown error occurred.'
+    if (
+      msg.includes('no devices') ||
+      msg.includes('device not found') ||
+      msg.includes('no devices/emulators found')
+    ) return 'No phone detected. Make sure your USB cable is connected and your phone is unlocked.'
+    if (msg.includes('device unauthorized') || msg.includes('unauthorized'))
+      return "Your phone is asking for permission. Check your phone screen and tap 'Allow'."
+    if (msg.includes('Accountability Mode is already active'))
+      return 'Accountability Mode is already active on this phone.'
+    if (msg.includes('Another app is controlling'))
+      return 'Another app is controlling this phone. It must be removed before Sober can be set up.'
+    if (
+      msg.includes('Google accounts are still on this device') ||
+      msg.includes('there are already some accounts')
+    ) return 'Please sign out of your Google account first. Tap "Open Account Settings" for instructions.'
+    if (msg.includes('timed out') || msg.includes('not removed within'))
+      return 'This is taking longer than expected. Make sure your phone is unlocked and try again.'
+    if (msg.includes('set-device-owner failed'))
+      return 'Setup failed — make sure your phone is unlocked and try again.'
+    return msg
+  }
+
   onDestroy(stopPoll)
 </script>
 
@@ -215,7 +239,7 @@
     {#if resetState === 'idle'}
       <div class="reset-section">
         {#if resetError}
-          <div class="banner error" style="margin-bottom: 12px">{resetError}</div>
+          <div class="banner error" style="margin-bottom: 12px">{friendlyError(resetError)}</div>
         {/if}
         <button class="danger" on:click={() => resetState = 'confirm'}>
           Remove Accountability Mode
@@ -410,7 +434,7 @@
 
     {:else if wizardStep === 'error'}
       <div class="banner error">
-        <strong>Setup failed:</strong> {errorMessage}
+        {friendlyError(errorMessage)}
         <button on:click={retryFromStart}>Try Again</button>
       </div>
 
