@@ -1,3 +1,4 @@
+<!-- desktop/frontend/src/components/StatusBar.svelte -->
 <script lang="ts">
   export let connected: boolean = false
   export let serial: string = ''
@@ -6,24 +7,71 @@
 <div class="status-bar">
   {#if connected}
     <span class="dot connected"></span>
-    Connected: {serial}
+    <span class="device-name">{serial}</span>
+    <span class="divider"></span>
+    <span class="os-info">Android device</span>
+    <span class="spacer"></span>
+    <span class="conn-label connected">Connected</span>
   {:else}
-    <span class="dot disconnected"></span>
-    No phone connected — plug in via USB
+    <span class="dot"></span>
+    <span class="no-device">No device connected</span>
   {/if}
 </div>
 
 <style>
   .status-bar {
-    padding: 6px 16px;
-    font-size: 13px;
-    border-top: 1px solid #e0e0e0;
+    height: 28px;
+    padding: 0 14px;
+    background: var(--status-bar-bg);
+    border-top: 1px solid var(--status-bar-border);
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #555;
+    flex-shrink: 0;
   }
-  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-  .connected { background: #4caf50; }
-  .disconnected { background: #9e9e9e; }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .dot.connected {
+    background: #22c55e;
+    box-shadow: 0 0 6px rgba(34, 197, 94, 0.55);
+  }
+
+  .device-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .divider {
+    width: 1px;
+    height: 10px;
+    background: var(--border);
+  }
+
+  .os-info {
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  .spacer { flex: 1; }
+
+  .conn-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .conn-label.connected { color: #4ade80; }
+
+  .no-device {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
 </style>
