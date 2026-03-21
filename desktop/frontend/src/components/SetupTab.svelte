@@ -43,6 +43,28 @@
     { label: 'Deactivating Accountability Mode', status: 'pending' },
   ]
 
+  // ── Hero subtitle ────────────────────────────────────────────────────────
+  $: heroSubtitle = (() => {
+    if (!connected) return 'Connect your device via USB to begin'
+    if (deviceOwnerInstalled) {
+      if (resetState === 'idle') return 'Device is set up · Manage or reset below'
+      if (resetState === 'confirm') return 'Confirm reset to remove accountability mode'
+      if (resetState === 'progress') return 'Resetting device…'
+      return 'Setup complete'
+    }
+    const stepLabels: Record<WizardStep, string> = {
+      'detect': 'Checking device accounts…',
+      'backup-consent': 'Step 1 · Back up your contacts',
+      'backing-up': 'Backing up contacts…',
+      'guide-removal': 'Step 2 · Remove Google accounts',
+      'ready-to-install': 'Step 3 · Ready to install',
+      'installing': 'Installing SoberAdmin…',
+      'success': 'Setup complete',
+      'error': 'Something went wrong',
+    }
+    return stepLabels[wizardStep] ?? ''
+  })()
+
   // ── Auto-detect on connect ───────────────────────────────────────────────
   // Guard against re-entrancy: if connected toggles rapidly while detectAccounts()
   // is awaiting, only one invocation should run at a time.
@@ -225,6 +247,11 @@
 </script>
 
 <div class="setup">
+  <div class="tab-hero">
+    <div class="hero-title">Setup Your Device</div>
+    <div class="hero-subtitle">{heroSubtitle}</div>
+  </div>
+
   <h2>Setup</h2>
 
   {#if deviceOwnerInstalled}
@@ -440,6 +467,25 @@
 </div>
 
 <style>
+  .tab-hero {
+    background: linear-gradient(135deg, var(--bg-hero-start), var(--bg-hero-end));
+    padding: 18px 22px 16px;
+    border-bottom: 1px solid var(--border-hero);
+    flex-shrink: 0;
+  }
+  .hero-title {
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+  .hero-subtitle {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
   .setup { max-width: 600px; color: #e2e2e8; }
   h2 { margin-bottom: 16px; font-size: 20px; color: #e2e2e8; }
 
