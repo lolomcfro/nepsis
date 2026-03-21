@@ -2,6 +2,7 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import { marked } from 'marked'
+  import indexJson from '../docs/index.json'
 
   interface Article {
     id: string
@@ -23,8 +24,6 @@
 
   // Import all markdown files eagerly so Vite bundles them
   const mdModules = import.meta.glob('../docs/**/*.md', { as: 'raw', eager: true }) as Record<string, string>
-  // Import index manifest
-  import indexJson from '../docs/index.json'
 
   onMount(() => {
     categories = indexJson.categories
