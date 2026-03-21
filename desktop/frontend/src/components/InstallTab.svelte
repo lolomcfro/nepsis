@@ -37,6 +37,10 @@
 </script>
 
 <div class="install-tab">
+  <div class="tab-hero">
+    <div class="hero-title">Install APK</div>
+    <div class="hero-subtitle">Select an APK or bundle file to sideload</div>
+  </div>
   <h2>Install App</h2>
   <p class="description">
     Since the Play Store is hidden, this is the only way to install new apps.
@@ -77,6 +81,24 @@
 </div>
 
 <style>
+  .tab-hero {
+    background: linear-gradient(135deg, var(--bg-hero-start), var(--bg-hero-end));
+    padding: 18px 22px 16px;
+    border-bottom: 1px solid var(--border-hero);
+    flex-shrink: 0;
+  }
+  .hero-title {
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+  .hero-subtitle {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--accent);
+  }
   .install-tab { max-width: 600px; }
   h2 { margin-bottom: 12px; font-size: 20px; }
   .description { color: #555; margin-bottom: 20px; line-height: 1.6; }
