@@ -318,16 +318,16 @@
   .refresh-btn {
     height: 28px;
     padding: 0 12px;
-    background: #1f1f2e;
-    border: 1px solid #2a2a38;
+    background: var(--bg-btn-secondary);
+    border: 1px solid var(--border-btn-secondary);
     border-radius: 6px;
-    color: #6b7280;
+    color: var(--text-btn-secondary);
     cursor: pointer;
     font-size: 12px;
     white-space: nowrap;
-    transition: background 0.15s;
+    transition: opacity 0.15s;
   }
-  .refresh-btn:hover:not(:disabled) { background: #2a2a3e; }
+  .refresh-btn:hover:not(:disabled) { opacity: 0.8; }
   .refresh-btn:disabled { opacity: 0.5; cursor: default; }
 
   .error-banner {
@@ -335,31 +335,31 @@
     align-items: center;
     gap: 12px;
     padding: 12px 16px;
-    background: #1f1515;
-    border: 1px solid #7f1d1d;
+    background: var(--color-error-bg);
+    border: 1px solid var(--color-error-border);
     border-radius: 6px;
-    color: #f87171;
+    color: var(--color-error-text);
     font-size: 13px;
     margin-bottom: 16px;
   }
   .error-banner button {
     padding: 4px 10px;
     background: transparent;
-    border: 1px solid #7f1d1d;
+    border: 1px solid var(--color-error-border);
     border-radius: 4px;
-    color: #f87171;
+    color: var(--color-error-text);
     cursor: pointer;
     font-size: 12px;
   }
-  .error-banner button:hover { background: #2a1515; }
+  .error-banner button:hover { opacity: 0.8; }
 
-  .hint { color: #4b5563; font-size: 14px; margin-top: 8px; }
+  .hint { color: var(--text-muted); font-size: 14px; margin-top: 8px; }
 
   .section-header {
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: #4b5563;
+    color: var(--text-muted);
     margin: 16px 0 6px;
   }
 
@@ -425,9 +425,9 @@
 
   .store-tag {
     font-size: 10px;
-    background: #1e1b4b;
-    color: #a78bfa;
-    border: 1px solid #312e81;
+    background: var(--accent-bg);
+    color: var(--accent);
+    border: 1px solid var(--border-hero);
     border-radius: 4px;
     padding: 2px 6px;
     flex-shrink: 0;
@@ -447,25 +447,25 @@
   }
 
   .btn-hide {
-    background: #1f1f2e;
-    border: 1px solid #2a2a38;
-    color: #9ca3af;
+    background: var(--bg-btn-action);
+    border: 1px solid var(--border-btn-action);
+    color: var(--text-btn-action);
   }
-  .btn-hide:hover:not(:disabled) { background: #2a2a3e; }
+  .btn-hide:hover:not(:disabled) { opacity: 0.8; }
 
   .btn-show {
-    background: #1a2a1f;
-    border: 1px solid #166534;
-    color: #4ade80;
+    background: var(--color-success-bg);
+    border: 1px solid var(--color-success-border);
+    color: var(--color-success-text);
   }
-  .btn-show:hover:not(:disabled) { background: #1f3328; }
+  .btn-show:hover:not(:disabled) { opacity: 0.8; }
 
   .btn-delete {
-    background: #1f1515;
-    border: 1px solid #7f1d1d;
-    color: #f87171;
+    background: var(--bg-btn-danger);
+    border: 1px solid var(--border-btn-danger);
+    color: var(--text-btn-danger);
   }
-  .btn-delete:hover:not(:disabled) { background: #2a1515; }
+  .btn-delete:hover:not(:disabled) { opacity: 0.8; }
 
   /* Modal */
   .modal-overlay {
@@ -478,8 +478,8 @@
     z-index: 100;
   }
   .modal-dialog {
-    background: #16161e;
-    border: 1px solid #2a2a38;
+    background: var(--bg-sidebar);
+    border: 1px solid var(--border);
     border-radius: 10px;
     padding: 28px 28px 24px;
     max-width: 380px;
@@ -488,12 +488,12 @@
   .modal-title {
     font-size: 15px;
     font-weight: 600;
-    color: #e2e2e8;
+    color: var(--text-primary);
     margin-bottom: 12px;
   }
   .modal-body {
     font-size: 13px;
-    color: #9ca3af;
+    color: var(--text-muted);
     line-height: 1.6;
     margin-bottom: 24px;
   }
@@ -504,27 +504,27 @@
   }
   .modal-cancel {
     padding: 8px 18px;
-    background: #1f1f2e;
-    border: 1px solid #2a2a38;
+    background: var(--bg-btn-secondary);
+    border: 1px solid var(--border-btn-secondary);
     border-radius: 6px;
-    color: #9ca3af;
+    color: var(--text-btn-secondary);
     font-size: 14px;
     cursor: pointer;
-    transition: background 0.12s;
+    transition: opacity 0.12s;
   }
-  .modal-cancel:hover:not(:disabled) { background: #2a2a3e; }
+  .modal-cancel:hover:not(:disabled) { opacity: 0.8; }
   .modal-cancel:disabled { opacity: 0.5; cursor: default; }
 
   .modal-delete {
     padding: 8px 18px;
-    background: #7f1d1d;
+    background: var(--color-error-border);
     border: none;
     border-radius: 6px;
-    color: #f87171;
+    color: white;
     font-size: 14px;
     cursor: pointer;
-    transition: background 0.12s;
+    transition: opacity 0.12s;
   }
-  .modal-delete:hover:not(:disabled) { background: #991b1b; }
+  .modal-delete:hover:not(:disabled) { opacity: 0.85; }
   .modal-delete:disabled { opacity: 0.5; cursor: default; }
 </style>

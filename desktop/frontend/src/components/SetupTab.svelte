@@ -252,8 +252,6 @@
     <div class="hero-subtitle">{heroSubtitle}</div>
   </div>
 
-  <h2>Setup</h2>
-
   {#if deviceOwnerInstalled}
     <!-- ── Post-setup state ── -->
     <div class="banner success">
@@ -486,20 +484,23 @@
     color: var(--accent);
   }
 
-  .setup { max-width: 600px; color: #e2e2e8; }
-  h2 { margin-bottom: 16px; font-size: 20px; color: #e2e2e8; }
+  .setup { max-width: 600px; color: var(--text-primary); }
 
   .wizard-step { display: flex; flex-direction: column; gap: 16px; }
-  .step-lead { color: #e2e2e8; line-height: 1.6; }
-  .hint { color: #6b7280; font-size: 13px; line-height: 1.5; }
+  .step-lead { color: var(--text-primary); line-height: 1.6; }
+  .hint { color: var(--text-muted); font-size: 13px; line-height: 1.5; }
 
   .info-box {
-    padding: 12px 16px; background: #1a1a2e; border: 1px solid #312e81;
-    border-left: 4px solid #7c6af7; border-radius: 6px; color: #c4b5fd; font-size: 14px;
+    padding: 12px 16px;
+    background: var(--color-info-bg); border: 1px solid var(--color-info-border);
+    border-left: 4px solid var(--color-info-border); border-radius: 6px;
+    color: var(--color-info-text); font-size: 14px;
   }
   .warn-box {
-    padding: 12px 16px; background: #1f1a0f; border: 1px solid #92400e;
-    border-left: 4px solid #d97706; border-radius: 6px; color: #fcd34d; font-size: 14px; line-height: 1.5;
+    padding: 12px 16px;
+    background: var(--color-warning-bg); border: 1px solid var(--color-warning-border);
+    border-left: 4px solid var(--color-warning-border); border-radius: 6px;
+    color: var(--color-warning-text); font-size: 14px; line-height: 1.5;
   }
 
   .button-col { display: flex; flex-direction: column; gap: 10px; }
@@ -507,38 +508,38 @@
 
   .poll-status {
     display: flex; align-items: center; gap: 10px;
-    color: #9ca3af; font-size: 14px; margin-top: 8px;
+    color: var(--text-muted); font-size: 14px; margin-top: 8px;
   }
 
   .reset-section { margin-top: 20px; }
-  .readd-section { margin-top: 20px; display: flex; flex-direction: column; gap: 12px; color: #9ca3af; font-size: 14px; }
+  .readd-section { margin-top: 20px; display: flex; flex-direction: column; gap: 12px; color: var(--text-muted); font-size: 14px; }
 
   .primary {
-    padding: 11px 28px; background: linear-gradient(135deg, #7c6af7, #a78bfa);
+    padding: 11px 28px; background: linear-gradient(135deg, var(--accent), var(--accent-subtle));
     color: white; border: none; border-radius: 6px; font-size: 15px; cursor: pointer;
     transition: opacity 0.15s; align-self: flex-start;
   }
   .primary:hover { opacity: 0.88; }
 
   .secondary {
-    padding: 10px 20px; background: #1f1f2e; color: #9ca3af;
-    border: 1px solid #2a2a38; border-radius: 6px; font-size: 14px; cursor: pointer;
+    padding: 10px 20px; background: var(--bg-btn-secondary); color: var(--text-btn-secondary);
+    border: 1px solid var(--border-btn-secondary); border-radius: 6px; font-size: 14px; cursor: pointer;
     transition: background 0.15s; align-self: flex-start;
   }
-  .secondary:hover { background: #2a2a3a; }
+  .secondary:hover { opacity: 0.85; }
 
   .danger {
-    padding: 10px 20px; background: #1f1515; color: #f87171;
-    border: 1px solid #7f1d1d; border-radius: 6px; font-size: 14px; cursor: pointer;
-    transition: background 0.15s;
+    padding: 10px 20px; background: var(--bg-btn-danger); color: var(--text-btn-danger);
+    border: 1px solid var(--border-btn-danger); border-radius: 6px; font-size: 14px; cursor: pointer;
+    transition: opacity 0.15s;
   }
-  .danger:hover { background: #2a1515; }
+  .danger:hover { opacity: 0.85; }
 
-  .progress { display: flex; align-items: center; gap: 16px; margin-top: 8px; color: #9ca3af; }
+  .progress { display: flex; align-items: center; gap: 16px; margin-top: 8px; color: var(--text-muted); }
 
   .spinner {
     width: 24px; height: 24px; flex-shrink: 0;
-    border: 3px solid #2a2a38; border-top-color: #a78bfa;
+    border: 3px solid var(--bg-spinner-track); border-top-color: var(--color-spinner);
     border-radius: 50%; animation: spin 0.8s linear infinite;
   }
   .spinner.small { width: 16px; height: 16px; border-width: 2px; }
@@ -547,29 +548,48 @@
   .banner {
     padding: 16px; border-radius: 6px; margin-top: 8px; line-height: 1.6;
   }
-  .banner.success { background: #1a2a1f; border: 1px solid #166534; border-left: 4px solid #166534; color: #4ade80; }
+  .banner.success {
+    background: var(--color-success-bg);
+    border: 1px solid var(--color-success-border);
+    border-left: 4px solid var(--color-success-border);
+    color: var(--color-success-text);
+  }
   .banner.error {
-    background: #1f1515; border: 1px solid #7f1d1d; border-left: 4px solid #7f1d1d; color: #f87171;
+    background: var(--color-error-bg);
+    border: 1px solid var(--color-error-border);
+    border-left: 4px solid var(--color-error-border);
+    color: var(--color-error-text);
     display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
   }
   .banner.error button {
-    padding: 4px 12px; cursor: pointer; background: #1f1f2e; color: #f87171;
-    border: 1px solid #7f1d1d; border-radius: 4px;
+    padding: 4px 12px; cursor: pointer;
+    background: var(--bg-btn-secondary); color: var(--color-error-text);
+    border: 1px solid var(--color-error-border); border-radius: 4px;
   }
-  .banner.warning { background: #1f1a0f; border: 1px solid #92400e; border-left: 4px solid #d97706; color: #fcd34d; }
-  .banner.info { background: #1a1a2e; border: 1px solid #312e81; border-left: 4px solid #7c6af7; color: #c4b5fd; }
+  .banner.warning {
+    background: var(--color-warning-bg);
+    border: 1px solid var(--color-warning-border);
+    border-left: 4px solid var(--color-warning-border);
+    color: var(--color-warning-text);
+  }
+  .banner.info {
+    background: var(--color-info-bg);
+    border: 1px solid var(--color-info-border);
+    border-left: 4px solid var(--color-info-border);
+    color: var(--color-info-text);
+  }
   .banner p { margin-bottom: 6px; }
-  .banner .hint { color: #9ca3af; font-size: 13px; }
+  .banner .hint { color: var(--text-muted); font-size: 13px; }
 
   .confirm-input {
     width: 100%;
     margin: 8px 0;
     padding: 6px 10px;
     font-size: 1rem;
-    border: 1px solid #92400e;
+    border: 1px solid var(--color-warning-border);
     border-radius: 4px;
-    background: #1a1207;
-    color: #fcd34d;
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
     box-sizing: border-box;
   }
 
@@ -585,12 +605,12 @@
     align-items: center;
     gap: 8px;
     padding: 4px 0;
-    color: #6b7280;
+    color: var(--text-muted);
   }
 
-  .reset-step.running { color: #e2e2e8; }
-  .reset-step.done    { color: #4ade80; }
-  .reset-step.error   { color: #f87171; }
+  .reset-step.running { color: var(--text-primary); }
+  .reset-step.done    { color: var(--color-success-text); }
+  .reset-step.error   { color: var(--color-error-text); }
 
   .spinner-sm {
     display: inline-block;
@@ -609,28 +629,28 @@
   }
 
   .trust-section {
-    border: 1px solid #2a2a38;
+    border: 1px solid var(--border);
     border-radius: 6px;
     overflow: hidden;
   }
   .trust-section summary {
     padding: 10px 14px;
     cursor: pointer;
-    color: #9ca3af;
+    color: var(--text-muted);
     font-size: 14px;
     user-select: none;
   }
-  .trust-section summary:hover { color: #c4b5fd; }
-  .trust-section[open] summary { color: #c4b5fd; border-bottom: 1px solid #2a2a38; }
-  .trust-section summary:focus-visible { outline: 2px solid #7c6af7; outline-offset: 2px; }
+  .trust-section summary:hover { color: var(--accent-subtle); }
+  .trust-section[open] summary { color: var(--accent-subtle); border-bottom: 1px solid var(--border); }
+  .trust-section summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .trust-body {
     padding: 12px 16px;
-    background: #1a1a2e;
+    background: var(--bg-row);
     font-size: 13px;
-    color: #9ca3af;
+    color: var(--text-muted);
     line-height: 1.7;
   }
-  .trust-body p { margin: 8px 0 4px; color: #e2e2e8; }
+  .trust-body p { margin: 8px 0 4px; color: var(--text-primary); }
   .trust-body ul { margin: 0 0 8px; padding-left: 20px; }
   .trust-body li { margin: 3px 0; }
 </style>

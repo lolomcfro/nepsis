@@ -138,21 +138,21 @@
     align-items: center;
     gap: 8px;
     padding: 10px 16px;
-    background: #1a1a2e;
-    border-bottom: 1px solid #312e81;
+    background: var(--color-info-bg);
+    border-bottom: 1px solid var(--color-info-border);
     font-size: 13px;
-    color: #c4b5fd;
+    color: var(--color-info-text);
     flex-shrink: 0;
   }
   .update-banner button {
     padding: 4px 10px;
-    border: 1px solid #312e81;
+    border: 1px solid var(--color-info-border);
     border-radius: 4px;
-    background: #1f1f2e;
-    color: #a78bfa;
+    background: var(--bg-btn-secondary);
+    color: var(--accent);
     cursor: pointer;
     font-size: 12px;
   }
-  .update-banner button:hover { background: #2a2a3e; }
-  .update-banner button.dismiss { border-color: #2a2a38; color: #6b7280; margin-left: auto; }
+  .update-banner button:hover { opacity: 0.85; }
+  .update-banner button.dismiss { border-color: var(--border); color: var(--text-muted); margin-left: auto; }
 </style>

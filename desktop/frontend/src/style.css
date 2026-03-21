@@ -18,6 +18,34 @@
   --status-bar-border: #e5e7eb;
   --shadow-sidebar: 0 2px 8px rgba(0,0,0,0.07);
   --shadow-content: 0 2px 8px rgba(0,0,0,0.06);
+  /* Semantic state colors */
+  --color-success-bg: #f0fdf4;
+  --color-success-border: #166534;
+  --color-success-text: #166534;
+  --color-error-bg: #fef2f2;
+  --color-error-border: #ef4444;
+  --color-error-text: #dc2626;
+  --color-warning-bg: #fffbeb;
+  --color-warning-border: #d97706;
+  --color-warning-text: #92400e;
+  --color-info-bg: #ede9fe;
+  --color-info-border: #7c6af7;
+  --color-info-text: #7c6af7;
+  /* Form / button tokens */
+  --bg-input: #f9fafb;
+  --text-input: #374151;
+  --border-input: #d1d5db;
+  --bg-btn-secondary: #f3f4f6;
+  --text-btn-secondary: #6b7280;
+  --border-btn-secondary: #d1d5db;
+  --bg-btn-danger: #fef2f2;
+  --text-btn-danger: #dc2626;
+  --border-btn-danger: #fca5a5;
+  --bg-btn-action: #f3f4f6;
+  --text-btn-action: #374151;
+  --border-btn-action: #d1d5db;
+  --bg-spinner-track: #e5e7eb;
+  --color-spinner: #7c6af7;
 }
 
 :root[data-theme="dark"] {
@@ -39,6 +67,34 @@
   --status-bar-border: #23233a;
   --shadow-sidebar: none;
   --shadow-content: none;
+  /* Semantic state colors */
+  --color-success-bg: #1a2a1f;
+  --color-success-border: #166534;
+  --color-success-text: #4ade80;
+  --color-error-bg: #1f1515;
+  --color-error-border: #7f1d1d;
+  --color-error-text: #f87171;
+  --color-warning-bg: #1f1a0f;
+  --color-warning-border: #92400e;
+  --color-warning-text: #fcd34d;
+  --color-info-bg: #1a1a2e;
+  --color-info-border: #312e81;
+  --color-info-text: #c4b5fd;
+  /* Form / button tokens */
+  --bg-input: #1a1a2e;
+  --text-input: #e2e2e8;
+  --border-input: #2a2a38;
+  --bg-btn-secondary: #1f1f2e;
+  --text-btn-secondary: #9ca3af;
+  --border-btn-secondary: #2a2a38;
+  --bg-btn-danger: #1f1515;
+  --text-btn-danger: #f87171;
+  --border-btn-danger: #7f1d1d;
+  --bg-btn-action: #1f1f2e;
+  --text-btn-action: #9ca3af;
+  --border-btn-action: #2a2a38;
+  --bg-spinner-track: #2a2a38;
+  --color-spinner: #a78bfa;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
