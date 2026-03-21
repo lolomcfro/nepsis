@@ -1,0 +1,36 @@
+{
+  "categories": [
+    {
+      "id": "getting-started",
+      "title": "Getting Started",
+      "articles": [
+        { "id": "introduction",  "title": "Introduction",  "file": "getting-started/introduction.md" },
+        { "id": "quick-setup",   "title": "Quick Setup",   "file": "getting-started/quick-setup.md" }
+      ]
+    },
+    {
+      "id": "setup-guide",
+      "title": "Setup Guide",
+      "articles": [
+        { "id": "accounts", "title": "Google Accounts", "file": "setup-guide/accounts.md" },
+        { "id": "backup",   "title": "Contacts Backup", "file": "setup-guide/backup.md" }
+      ]
+    },
+    {
+      "id": "app-management",
+      "title": "App Management",
+      "articles": [
+        { "id": "hiding-apps",   "title": "Hiding Apps",   "file": "app-management/hiding-apps.md" },
+        { "id": "deleting-apps", "title": "Deleting Apps", "file": "app-management/deleting-apps.md" }
+      ]
+    },
+    {
+      "id": "troubleshooting",
+      "title": "Troubleshooting",
+      "articles": [
+        { "id": "common-errors", "title": "Common Errors",    "file": "troubleshooting/common-errors.md" },
+        { "id": "no-device",     "title": "No Device Found",  "file": "troubleshooting/no-device.md" }
+      ]
+    }
+  ]
+}
