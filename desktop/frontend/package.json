@@ -10,6 +10,8 @@
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^1.0.1",
+    "prettier": "^3.4.2",
+    "prettier-plugin-svelte": "^3.3.3",
     "svelte": "^3.49.0",
     "svelte-preprocess": "^5.1.4",
     "typescript": "^5.9.3",
