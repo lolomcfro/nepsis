@@ -14,6 +14,10 @@ export function GetConnectionStatus() {
   return window['go']['main']['App']['GetConnectionStatus']();
 }
 
+export function GetDeviceInfo() {
+  return window['go']['main']['App']['GetDeviceInfo']();
+}
+
 export function GetContactsBackupInfo() {
   return window['go']['main']['App']['GetContactsBackupInfo']();
 }

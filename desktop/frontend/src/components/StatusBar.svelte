@@ -2,14 +2,19 @@
 <script lang="ts">
   export let connected: boolean = false
   export let serial: string = ''
+  export let deviceModel: string = ''
+  export let androidVersion: string = ''
+
+  $: displayName = deviceModel || serial
+  $: osLabel = androidVersion ? `Android ${androidVersion}` : 'Android'
 </script>
 
 <div class="status-bar">
   {#if connected}
     <span class="dot connected"></span>
-    <span class="device-name">{serial}</span>
+    <span class="device-name">{displayName}</span>
     <span class="divider"></span>
-    <span class="os-info">Android device</span>
+    <span class="os-info">{osLabel}</span>
     <span class="spacer"></span>
     <span class="conn-label connected">Connected</span>
   {:else}

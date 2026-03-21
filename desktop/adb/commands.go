@@ -376,6 +376,18 @@ func (c *Commands) ClearDeviceOwner() error {
 	return fmt.Errorf("device owner not removed within 10 seconds")
 }
 
+// GetDeviceInfo returns the human-readable device model name and Android OS
+// version by reading standard system properties. Returns empty strings on error.
+func (c *Commands) GetDeviceInfo() (model string, androidVersion string) {
+	if out, err := c.runner.Run("shell", "getprop", "ro.product.model"); err == nil {
+		model = strings.TrimSpace(out)
+	}
+	if out, err := c.runner.Run("shell", "getprop", "ro.build.version.release"); err == nil {
+		androidVersion = strings.TrimSpace(out)
+	}
+	return
+}
+
 // ParseAppList parses the JSON app list written by LIST_APPS.
 func ParseAppList(jsonStr string) ([]App, error) {
 	var apps []App

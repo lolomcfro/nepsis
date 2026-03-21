@@ -1,7 +1,7 @@
 <!-- desktop/frontend/src/App.svelte -->
 <script lang="ts">
   import { onMount } from 'svelte'
-  import { getConnectionStatus, isDeviceOwnerInstalled, onConnectionChange, onAdminVersionMismatch, updateAdmin, getKnownStores, hideApp } from './lib/wails'
+  import { getConnectionStatus, isDeviceOwnerInstalled, onConnectionChange, onAdminVersionMismatch, updateAdmin, getKnownStores, hideApp, getDeviceInfo } from './lib/wails'
   import type { ConnectionStatus } from './lib/wails'
   import Sidebar from './components/Sidebar.svelte'
   import StatusBar from './components/StatusBar.svelte'
@@ -13,6 +13,8 @@
   let activeTab = 'apps'
   let connected = false
   let serial = ''
+  let deviceModel = ''
+  let androidVersion = ''
   let deviceOwnerInstalled = false
 
   let versionMismatch: { installedVersion: number, bundledVersion: number } | null = null
@@ -50,7 +52,10 @@
     serial = status.serial
 
     if (connected) {
-      deviceOwnerInstalled = await isDeviceOwnerInstalled()
+      const [doInstalled, info] = await Promise.all([isDeviceOwnerInstalled(), getDeviceInfo()])
+      deviceOwnerInstalled = doInstalled
+      deviceModel = info.model
+      androidVersion = info.androidVersion
       activeTab = deviceOwnerInstalled ? 'apps' : 'setup'
     }
 
@@ -63,10 +68,15 @@
       connected = status.connected
       serial = status.serial
       if (connected) {
-        deviceOwnerInstalled = await isDeviceOwnerInstalled()
+        const [doInstalled, info] = await Promise.all([isDeviceOwnerInstalled(), getDeviceInfo()])
+        deviceOwnerInstalled = doInstalled
+        deviceModel = info.model
+        androidVersion = info.androidVersion
         activeTab = deviceOwnerInstalled ? 'apps' : 'setup'
       } else {
         deviceOwnerInstalled = false
+        deviceModel = ''
+        androidVersion = ''
       }
     })
   })
@@ -106,7 +116,7 @@
       {/if}
     </div>
 
-    <StatusBar {connected} {serial} />
+    <StatusBar {connected} {serial} {deviceModel} {androidVersion} />
   </div>
 </div>
 

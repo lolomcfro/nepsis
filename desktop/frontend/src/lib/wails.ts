@@ -3,7 +3,7 @@
 import {
   GetConnectionStatus, GetApps, HideApp, ShowApp, InstallAPK,
   IsDeviceOwnerInstalled, OpenFileDialog, UpdateAdmin, UninstallApp,
-  GetKnownStores,
+  GetKnownStores, GetDeviceInfo,
   GetGoogleAccountCount, OpenAccountSettings, ExportContactsToDesktop,
   GetContactsBackupInfo, RunInstall, RunReset, ImportContactsFromBackup
 } from '../../wailsjs/go/main/App'
@@ -27,7 +27,13 @@ export interface ContactsBackupInfo {
   date: string
 }
 
+export interface DeviceInfo {
+  model: string
+  androidVersion: string
+}
+
 export const getConnectionStatus = (): Promise<ConnectionStatus> => GetConnectionStatus()
+export const getDeviceInfo = (): Promise<DeviceInfo> => GetDeviceInfo()
 export const getApps = (): Promise<App[]> => GetApps()
 export const hideApp = (pkg: string): Promise<void> => HideApp(pkg)
 export const showApp = (pkg: string): Promise<void> => ShowApp(pkg)

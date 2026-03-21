@@ -154,6 +154,18 @@ func (a *App) UninstallApp(pkg string) error {
 	return a.appManager.UninstallApp(pkg)
 }
 
+// GetDeviceInfo returns the human-readable device model and Android OS version.
+func (a *App) GetDeviceInfo() map[string]interface{} {
+	model, androidVersion := "", ""
+	if a.connected && a.commands != nil {
+		model, androidVersion = a.commands.GetDeviceInfo()
+	}
+	return map[string]interface{}{
+		"model":          model,
+		"androidVersion": androidVersion,
+	}
+}
+
 // GetKnownStores returns the list of known app store package names.
 func (a *App) GetKnownStores() []string {
 	return adb.GetKnownStoreList()
