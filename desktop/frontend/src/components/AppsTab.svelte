@@ -27,6 +27,26 @@
 
   $: totalFiltered = filteredStoreApps.length + filteredRegularApps.length
 
+  let visibilityFilter: 'all' | 'visible' | 'hidden' = 'all'
+
+  $: visibleFilteredRegularApps = filteredRegularApps.filter(a => {
+    if (visibilityFilter === 'visible') return !a.hidden
+    if (visibilityFilter === 'hidden') return a.hidden
+    return true
+  })
+
+  $: visibleFilteredStoreApps = filteredStoreApps.filter(a => {
+    if (visibilityFilter === 'visible') return !a.hidden
+    if (visibilityFilter === 'hidden') return a.hidden
+    return true
+  })
+
+  function cycleFilter() {
+    if (visibilityFilter === 'all') visibilityFilter = 'visible'
+    else if (visibilityFilter === 'visible') visibilityFilter = 'hidden'
+    else visibilityFilter = 'all'
+  }
+
   async function load() {
     if (!connected) return
     loading = true
@@ -95,15 +115,28 @@
 </script>
 
 <div class="apps-tab">
-  <div class="toolbar">
-    <input
-      type="search"
-      placeholder="Search apps…"
-      bind:value={search}
-    />
-    <button on:click={load} disabled={loading || !connected}>
-      {loading ? 'Loading…' : 'Refresh'}
-    </button>
+  <div class="tab-hero">
+    <div class="hero-title">Manage Apps</div>
+    <div class="hero-controls">
+      <div class="search-wrap">
+        <svg class="search-icon" width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <circle cx="5" cy="5" r="3.5" stroke="currentColor" stroke-width="1.3"/>
+          <path d="M8 8l2 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        <input
+          class="search-input"
+          type="text"
+          placeholder="Search apps…"
+          bind:value={search}
+        />
+      </div>
+      <button class="filter-pill" on:click={cycleFilter}>
+        {visibilityFilter === 'all' ? 'All' : visibilityFilter === 'visible' ? 'Visible' : 'Hidden'}
+      </button>
+      <button class="refresh-btn" on:click={load} disabled={loading || !connected}>
+        {loading ? 'Loading…' : 'Refresh'}
+      </button>
+    </div>
   </div>
 
   {#if error}
@@ -121,21 +154,17 @@
     <p class="hint">No apps found.</p>
   {:else}
 
-    {#if filteredStoreApps.length > 0}
+    {#if visibleFilteredStoreApps.length > 0}
       <div class="section-header">App Stores — Auto-hidden</div>
       <ul class="app-list">
-        {#each filteredStoreApps as app (app.package)}
-          <li class="app-item" class:faded={app.hidden}>
-            {#if app.icon}
-              <img src="data:image/png;base64,{app.icon}" alt="" class="app-icon" />
-            {:else}
-              <div class="app-icon placeholder"></div>
-            {/if}
-            <div class="app-info">
-              <span class="app-label">{app.label}</span>
-              <span class="app-package">{app.package}</span>
-            </div>
+        {#each visibleFilteredStoreApps as app (app.package)}
+          <li class="app-row" class:hidden-app={app.hidden}>
+            <div class="app-icon-placeholder">{app.label.charAt(0).toUpperCase()}</div>
+            <span class="app-name">{app.label}</span>
             <span class="store-tag">Store</span>
+            <span class="badge" class:badge-visible={!app.hidden} class:badge-hidden={app.hidden}>
+              {app.hidden ? 'Hidden' : 'Visible'}
+            </span>
             {#if app.hidden}
               <button
                 class="btn-show"
@@ -158,20 +187,16 @@
       </ul>
     {/if}
 
-    {#if filteredRegularApps.length > 0}
+    {#if visibleFilteredRegularApps.length > 0}
       <div class="section-header">Apps</div>
       <ul class="app-list">
-        {#each filteredRegularApps as app (app.package)}
-          <li class="app-item" class:faded={app.hidden}>
-            {#if app.icon}
-              <img src="data:image/png;base64,{app.icon}" alt="" class="app-icon" />
-            {:else}
-              <div class="app-icon placeholder"></div>
-            {/if}
-            <div class="app-info">
-              <span class="app-label">{app.label}</span>
-              <span class="app-package">{app.package}</span>
-            </div>
+        {#each visibleFilteredRegularApps as app (app.package)}
+          <li class="app-row" class:hidden-app={app.hidden}>
+            <div class="app-icon-placeholder">{app.label.charAt(0).toUpperCase()}</div>
+            <span class="app-name">{app.label}</span>
+            <span class="badge" class:badge-visible={!app.hidden} class:badge-hidden={app.hidden}>
+              {app.hidden ? 'Hidden' : 'Visible'}
+            </span>
             {#if app.hidden}
               <button
                 class="btn-show"
@@ -235,32 +260,75 @@
 <style>
   .apps-tab { max-width: 700px; }
 
-  .toolbar { display: flex; gap: 12px; margin-bottom: 16px; }
-  .toolbar input {
-    flex: 1;
-    padding: 8px 12px;
-    background: #1f1f2e;
-    border: 1px solid #2a2a38;
-    border-radius: 6px;
-    font-size: 14px;
-    color: #e2e2e8;
-    outline: none;
-    transition: border-color 0.15s;
+  .tab-hero {
+    background: linear-gradient(135deg, var(--bg-hero-start), var(--bg-hero-end));
+    padding: 16px 18px 14px;
+    border-bottom: 1px solid var(--border-hero);
+    flex-shrink: 0;
   }
-  .toolbar input:focus { border-color: #a78bfa; }
-  .toolbar input::placeholder { color: #4b5563; }
-  .toolbar button {
-    padding: 8px 16px;
+  .hero-title {
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+  }
+  .hero-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .search-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.6);
+    border: 1px solid var(--border-hero);
+    border-radius: 7px;
+    height: 28px;
+    padding: 0 10px;
+    color: var(--text-muted);
+  }
+  :global([data-theme="dark"]) .search-wrap {
+    background: rgba(255,255,255,0.05);
+  }
+  .search-icon { flex-shrink: 0; }
+  .search-input {
+    border: none;
+    background: transparent;
+    font-size: 12px;
+    color: var(--text-primary);
+    outline: none;
+    width: 100%;
+  }
+  .search-input::placeholder { color: var(--text-muted); }
+  .filter-pill {
+    height: 28px;
+    padding: 0 12px;
+    border: 1px solid var(--border-hero);
+    border-radius: 14px;
+    background: var(--accent-bg);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .refresh-btn {
+    height: 28px;
+    padding: 0 12px;
     background: #1f1f2e;
     border: 1px solid #2a2a38;
     border-radius: 6px;
     color: #6b7280;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 12px;
+    white-space: nowrap;
     transition: background 0.15s;
   }
-  .toolbar button:hover:not(:disabled) { background: #2a2a3e; }
-  .toolbar button:disabled { opacity: 0.5; cursor: default; }
+  .refresh-btn:hover:not(:disabled) { background: #2a2a3e; }
+  .refresh-btn:disabled { opacity: 0.5; cursor: default; }
 
   .error-banner {
     display: flex;
@@ -296,24 +364,64 @@
   }
 
   .app-list { list-style: none; padding: 0; margin: 0; }
-  .app-item {
+  .app-row {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 8px 10px;
-    border-radius: 6px;
-    border-bottom: 1px solid #2a2a38;
-    transition: background 0.12s, opacity 0.2s;
+    height: 36px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--border);
+    transition: opacity 0.12s;
   }
-  .app-item:hover { background: #1f1f2e; }
-  .app-item.faded { opacity: 0.45; }
-
-  .app-icon { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
-  .app-icon.placeholder { background: #2a2a38; }
-
-  .app-info { flex: 1; min-width: 0; }
-  .app-label { display: block; font-size: 14px; font-weight: 500; color: #e2e2e8; }
-  .app-package { display: block; font-size: 11px; color: #4b5563; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .app-row.hidden-app { opacity: 0.55; }
+  .app-icon-placeholder {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    background: var(--accent-bg);
+    color: var(--accent);
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .app-name {
+    flex: 1;
+    font-size: 12px;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 10px;
+    flex-shrink: 0;
+  }
+  .badge-visible {
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+  }
+  .badge-hidden {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+  }
+  :global([data-theme="dark"]) .badge-visible {
+    background: #052e16;
+    color: #4ade80;
+    border-color: #166534;
+  }
+  :global([data-theme="dark"]) .badge-hidden {
+    background: #451a03;
+    color: #fbbf24;
+    border-color: #78350f;
+  }
 
   .store-tag {
     font-size: 10px;
