@@ -1,26 +1,57 @@
-html {
-    background-color: rgba(27, 38, 54, 1);
-    text-align: center;
-    color: white;
+/* desktop/frontend/src/style.css */
+:root {
+  --bg-app: #eeeef4;
+  --bg-sidebar: #ffffff;
+  --bg-content: #ffffff;
+  --bg-hero-start: #ede9fe;
+  --bg-hero-end: #f5f3ff;
+  --bg-row: #f9fafb;
+  --border: #e5e7eb;
+  --border-hero: #f0ebff;
+  --text-primary: #1a1a2e;
+  --text-secondary: #374151;
+  --text-muted: #6b7280;
+  --accent: #7c6af7;
+  --accent-subtle: #a78bfa;
+  --accent-bg: #ede9fe;
+  --status-bar-bg: #ffffff;
+  --status-bar-border: #e5e7eb;
+  --shadow-sidebar: 0 2px 8px rgba(0,0,0,0.07);
+  --shadow-content: 0 2px 8px rgba(0,0,0,0.06);
 }
 
+:root[data-theme="dark"] {
+  --bg-app: #080810;
+  --bg-sidebar: #16161e;
+  --bg-content: #13131e;
+  --bg-hero-start: #1e1830;
+  --bg-hero-end: #1a1628;
+  --bg-row: #1f1f2e;
+  --border: #23233a;
+  --border-hero: #2a2a3e;
+  --text-primary: #e2e2e8;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --accent: #a78bfa;
+  --accent-subtle: #c4b5fd;
+  --accent-bg: #2a2040;
+  --status-bar-bg: #16161e;
+  --status-bar-border: #23233a;
+  --shadow-sidebar: none;
+  --shadow-content: none;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
 body {
-    margin: 0;
-    color: white;
-    font-family: "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-    "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--bg-app);
+  color: var(--text-primary);
 }
 
 @font-face {
-    font-family: "Nunito";
-    font-style: normal;
-    font-weight: 400;
-    src: local(""),
-    url("assets/fonts/nunito-v16-latin-regular.woff2") format("woff2");
-}
-
-#app {
-    height: 100vh;
-    text-align: center;
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 400;
+  src: local(""), url("assets/fonts/nunito-v16-latin-regular.woff2") format("woff2");
 }
